@@ -1,0 +1,261 @@
+chklinks change log
+
+2008-11-18
+	 1. INSTALL: Fixed the grammer on installation with the CPAN or
+	    CPANPLUS shell, changed "install with the CPAN shell using"
+	    and "install with the CPANPLUS shell using" to "install it
+	    with the CPAN shell by running" and "install it with the
+	    CPANPLUS shell by running".
+	 2. chklinks.en.html: Updated information on required and optional
+	    Perl modules, to describe different installation commands for
+	    different operating systems.
+	 3. INSTALL and chklinks.en.html: Changed "Fedora/Red Hat" to
+	    "Red Hat/Fedora/CentOS".
+	 4. chklinks.zh-tw.html and chklinks.zh-cn.html: Removed
+	    Date::Parse from the required modules.  It is a mistake when
+	    copying text from arclog.
+	 5. INSTALL.zh-tw, INSTALL.zh-cn, chklinks.zh-tw.html and
+	    chklinks.zh-cn.html: Updated information on required and
+	    optional Perl modules, to describe different installation
+	    commands for different operating systems.
+
+2008-11-17
+	 1. INSTALL: Updated information on required and optional Perl
+	    modules, to describe different installation commands for
+	    different operating systems.
+	 2. INSTALL: Fixed the grammer on the notes that required modules
+	    are automatically installed if install from the CPAN or
+	    CPANPLUS shell.
+	 2. chklinks.en.html: Fixed the grammer of the required modules,
+	    changed "is part of the xxx package" to "is contained in the
+	    xxx distribution".
+
+2008-04-21
+	 1. INSTALL and chklinks.en.html: Fixed typo: "instalation" to
+	    "installation".
+
+2007-12-05	version 3.09
+	MS-Windows fix.
+	 1. chklinks: Fixed the "from" address of the user agent to use
+	    getlogin() and then getpwuid(), in order to work on systems
+	    that only have getlogin() but not getpwuid(), like MS-Windows.
+
+2007-12-05	version 3.08
+	Documentation fixes.
+	 1. README.zh-*, chklinks.zh-*.html: Fixed the description
+	    "是用 Perl 寫的單執行緒連結檢查程式" to "是單執行緒的 Perl 連結
+	    檢查程式", according to the existing short description in
+	    README.zh-tw.  I was out of my mind to miss this and translate
+	    it again.
+	 2. chklinks.zh-tw.html, chklinks.zh-cn.html: Removed the old
+	    excess LWP/UTF-8 paragraph from the Notes section.
+	 3. chklinks.en.html: Fixed "for a LWP::Protocol patch" to
+	    "for an LWP::Protocol patch".
+	 4. README.en: Fixed "LWP::RobotUA(3)" to "LWP::RobotUA".
+	 5. README*: Updated the LWP/UTF-8 information.
+	 6. chklinks.*.html: Fixed the support section, replacing all
+	    instances of "arclog" to "chklinks".  It is terrible that I just
+	    copied and pasted without reviewing.
+
+2007-12-05	version 3.07
+	 1. chklinks.*.html: Refer to NEWS instead of Changes for release
+	    notes.
+	 2. README*, chklinks.*.html: Fixed the description "is a Perl link
+	    checker" to "is a non-threaded Perl link checker".
+	 3. chklinks, README, Build.PL, Makefile.PL: Fixed the short
+	    description "perl link checker" to "Perl link checker".
+
+2007-12-04
+	 1. Makefile.PL: Fixed to prevent importing symbols when
+	    checking optional prerequisites.
+
+2007-12-03
+	 1. Makefile.PL, Build.PL: Added comment on the short description of
+	    this file to the beginning of the file.
+	 2. Makefile.PL, Build.PL: Added "use warnings;".
+
+2007-12-01
+	 1. chklinks, Makefile.PL: Use "use 5.006" instead of "use 5.6.0",
+	    for compatibility with older Perl, and get ride of the warning
+	    of Perl 5.10.
+
+2007-11-27
+	 1. chklinks.zh-tw.html, chklinks.zh-cn.html: Tag the languages.
+
+2007-11-26
+	 1. License updated to GPLv3.
+	 2. chklinks.*.html: Added version number to the title.
+	 3. chklinks.zh-cn.html: Fixed the quotation style.
+	 4. fdl.txt: Updated (FSF address).
+	 5. MSWin32 and MS-Win32 is now written as MS-Windows in the
+	    documentation.
+	 6. Build.PL: Added "recommends" and "build_requires".
+
+2007-11-25
+	 1. chklinks.en.html, INSTALL: Fixed the typo "archieve" as "archive".
+
+2007-11-22
+	 1. chklinks: Fixed $SIG{__WARN__} to $SIG{"__WARN__"} in the
+	    parse_args() subroutine.
+	 2. chklinks: Removed the Chinese GPL copyright message.  There should
+	    only be one version of the copyright message, and should not be
+	    any Chinese comment.
+
+2007-06-08	version 3.06
+	Test suite updates
+	 1. t/01-basic.t: Added test 21 to check if we have exhausted all
+	    the results, and remove the found URL after test 15-20, in
+	    order to catch errors in the test suites.
+
+2007-06-07
+	 1. chklinks.en.html, chklinks.zh-tw.html, chklinks.zh-cn.html:
+	    Added missing <samp>...</samp> around WWW::RobotRules in the
+	    Notes chapter.
+	 2. INSTALL: Filled in the missing text in the System Requirements
+	    chapter.
+	 2. chklinks.zh-cn.html: Added blank line in the News chapter.
+
+2007-06-07	version 3.05
+	 1. chklinks: Do not set $parser->utf8_mode(1) in get_links() when
+	    Perl version is earlier than 5.8 where UTF-8 mode is not
+	    available.
+	 2. INSTALL, INSTALL.zh-tw, INSTALL.zh-cn: Added instruction on
+	    installation with Module::Build.
+	 3. INSTALL.zh-tw, INSTALL.zh-cn: Fixed several typos.
+	 4. chklinks.en.html: Added instruction on installation with
+	    Module::Build.
+	 5. chklinks.zh-tw.html, chklinks.zh-cn.html: Added illustration
+	    instruction that was missing previously.
+	 6. t/htdocs/dir01/test01.html: Added http://www.domain.invalid/
+	    and ftp://ftp.domain.invalid/.
+	 7. t/01-basic.t: Added test on http://www.domain.invalid/ and
+	    ftp://ftp.domain.invalid/.
+	 8. t/htdocs/dir01/start.html: Changed to UTF-8, and added an
+	    UTF-8 Chinese paragraph in order to test UTF-8 mode.
+
+2007-06-06	version 3.04
+	Documentation fixes.
+	 1. Changes: Added detailed change log entries about the new Notes
+	    chapter of the POD document.
+	 2. chklinks.en.html: Fixed an unencoded <p> in the HTML.
+	 3. chklinks.zh-tw.html: Removed the extra white space in the front
+	    of the news text.
+	 4. chklinks.en.html, chklinks.zh-tw.html, chklinks.zh-cn.html: Added
+	    Module::Build support to 3.03 news text.
+
+2007-06-06	version 3.03
+	 1. chklinks: Added "$parser->utf8_mode(1);" in get_links(), to
+	    fix the HTML::Parser raw UTF-8 warning when extracting links from
+	    UTF-8 HTML content with HTML::Parser version >= 3.40.  Thanks
+	    to nsnake <loveme1314@gmail.com> for reporting this problem.
+	 2. Build.PL: Added, to support building with Module::Build.
+	 3. chklinks: Added a new chapter "Notes" in the POD document.  Moved
+	    the illustration on Crawl-delay: from the Bugs chapter to the
+	    Notes chapter of the POD document.
+	 4. chklinks: Added illustration of CPAN RT Bug#20274 on LWP::Protocol
+	    with HTML::Parser 3.40+ to the Notes chapter of the POD document.
+
+2006-07-20
+	 1. chklinks: Replaced getlogin() with getpwuid().  getlogin() many
+	    not always be available, for example, when running from
+	    crontab.
+
+2006-06-08
+	 1. chklinks: Revised the code with my own coding standard.
+	 2. Changes: ChangeLog renamed to Changes, in order to follow Perl's
+	    convention.
+
+2006-06-01	version 3.02
+	 1. SIGNATURE: Fixed.  Added the missing META.yml.
+	 2. Fixes in HTML documents.
+
+2006-05-31	version 3.01
+	 1. HTML documents were missing in version 3.00.  I have put them
+	    back.  I have also made a lot of changes, including Web
+	    Accessibility updates.
+	 2. chklinks: Updated $UASTR to use $LWP::VERSION when
+	    LWP::RobotUA->_agent() is not available.  LWP::RobotUA->_agent()
+	    is only available after libwww-perl version 5.53_91. (It's
+	    2001-04-20, though.)
+	 3. chklinks: Use File::Spec instead of File::Spec::Functions.
+	    File::Spec is more compatible in older versions.
+	 4. Several translated Chinese documents are added.
+
+2006-05-30
+	 1. ChangeLog: Added the forgotten version number.
+	 2. Makefile.PL: Added the missing prerequisites LWP::RobotUA,
+	    HTTP::Cookies and HTTP::Request.  Removed Net::HTTP that is not
+	    used anymore.
+	 3. chklinks: Removed the prerequisite Net::HTTP.  It is not used
+	    anymore.
+
+2006-05-30	version 3.00
+	 1. Documentation fixes.
+
+2006-05-29
+	 1. Fixed the usage in usage help from chklinks.pl to chklinks.  Fixed
+	    the help text from "check for" to "check against".
+	 2. Change the name fetch_doc_redir() to fetch_redir() and
+	    fetch_doc_noredir() to fetch_noredir().
+	 3. t/00-signature.t and 99-pod.t: added.
+	 4. t/htdocs: a simple test suite is created.  t/01-basic.t is rewritten
+	    to use that test suite.
+
+2006-05-28
+	 1. Use warn() instead of print STDERR in warnings.
+	 2. Added %ALLOWED_SCHEMES, with 5 protocols supported: http, https,
+	    ftp, file and gopher, which are supported protocols common to LWP
+	    and URI.
+	 3. parse_args() and proc_link_val(): Modified to respect
+	    %ALLOWED_SCHEMES instead of filtering out everything but HTTP.
+	 4. check_links(): Fixed the comment from
+	    "We will never parse the remote documents" to
+	    "We are not parsing remote documents".
+	 5. Removed unnecessary scalar() in parse_args() and check_links().
+	 6. parse_args(): Updated the warning, change
+	    "Skipping scheme-less URI" to "Skipping URI without a scheme",
+	    change "Skipping hostless URI" to "Skipping URI without a host".
+	 7. Use LWP::RobotUA to make request instead of making HTTP request
+	    myself.  Added fetch_doc_noredir(), fetch_doc_redir(), get_ua()
+	    and get_target() to replace fetch_http(), fetch_http_redir(),
+	    new_http() and re_http().
+	 8. Changed User-Agent text from chklinks/version to
+	    chklinks-robot/version.
+	 9. Use HTTP::Cookies to save and use the cookies.  As $COOKIE_JAR
+	    as the common cookie jar for all the UA objects.
+	10. Added noreq_key() and %NOREQ_HOSTS to prevent bothering servers
+	    that are not available and returning HTTP 503.
+	11. Support file:// scheme gracefully.  Added rep_uri() to report
+	    the file:// URI gracefully.  Currently tested on Linux and
+	    MSWin32.  More tests required.
+	12. Moved chklinks from bin directory to the source root.
+
+2006-05-27
+	 1. Add the prototype declaration.
+	 2. Use HTML::LinkExtor to parse and extract the links in an HTML
+	    page, instead of parsing it myself.
+
+2003-05-26	version 2.02
+	 1. The default changed from onelevel to recursive.  This is more
+	    desirable in most cases.
+	 2. Documentation fixes.
+	 3. The chklinks website is done.
+	 4. 01-basic.t: File::Spec is used instead of File::Spec::Functions,
+	    in order to work with perl 5.005.
+	 5. PGP key added.
+	 6. HTML documents added.
+	 7. Chinese GPL (both simplified and traditional) are added.
+	 8. FDL added.
+
+2003-05-25	version 2.01
+	 1. An installer, accessary files and a POD document are added.
+
+2003-05-25	version 2.0.0
+	 1. First public release uploaded onto SourceForge.
+	    Only the main script file is available.
+
+2003-05-19
+	 1. SourceForge project space approved.
+
+2003-05-18
+	 1. Requesting a SourceForge project space.

@@ -1,0 +1,480 @@
+<?xml version="1.0" encoding="Big5" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-tw">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=Big5" />
+<meta http-equiv="Content-Style-Type" content="text/css" />
+<meta http-equiv="Content-Script-Type" content="text/javascript" />
+<meta name="author" content="依瑪貓" />
+<meta name="copyright" content="&copy; 2003-2008 依瑪貓。" />
+<meta name="keywords" content="網站超連結檢查程式" />
+<link rel="alternate" type="application/xhtml+xml" href="chklinks.zh-cn.html"
+     hreflang="zh-cn" title="&#31616;体中文" />
+<link rel="alternate" type="application/xhtml+xml" href="chklinks.en.html"
+     hreflang="en-us" title="English" />
+<link rel="copyright" type="text/plain" href="fdl.txt" />
+<link rel="author" href="mailto:imacat&#64;mail.imacat.idv.tw" />
+<style type="text/css">
+h2, em {
+    text-transform: uppercase;
+}
+.accessguide {
+    font-size: 0.5em;
+    float: left;
+    width: 0.5em;
+}
+q {
+    quotes: "「" "」" "『" "』";
+}
+q:lang(en) {
+    quotes: "\201C" "\201D" "\2018" "\2019";
+}
+</style>
+<title>chklinks 3.09 版</title>
+</head>
+<body>
+
+<div class="langs" title="語言切換區">
+    <span>繁體中文</span> |
+    <span xml:lang="zh-cn"><a href="chklinks.zh-cn.html"
+        title="切&#25442;到本&#39029;的&#31616;体中文版。"
+        hreflang="zh-cn">&#31616;体中文</a></span> |
+    <span xml:lang="en"><a href="chklinks.en.html"
+        title="Switch to the English version of this page."
+        hreflang="en-us">English</a></span>
+</div>
+<hr />
+
+
+<div id="body" class="body" title="網頁內文區">
+<div class="accessguide"><a accesskey="C"
+    href="#body" title="網頁內文區">:::</a></div>
+
+<h1><samp xml:lang="en">chklinks</samp> 3.09 版</h1>
+
+
+<h2>最新消息</h2>
+
+<dl>
+
+<dt>2007-12-06</dt>
+
+<dd>
+<p><samp xml:lang="en">chklinks</samp> 最新版本 3.09 。新版修正像 <span xml:lang="en"><abbr title="Microsoft">MS</abbr>-Windows</span> 之類不支援 <samp xml:lang="en">getpwuid()</samp> 呼叫的作業系統的問題。<a href="ftp://ftp.imacat.idv.tw/pub/chklinks/chklinks-3.09.tar.gz" type="application/x-gzip">下載 <samp xml:lang="en">chklinks</samp> 3.09 版</a>。</p>
+</dd>
+
+
+<dt>2007-12-05</dt>
+
+<dd>
+<p><samp xml:lang="en">chklinks</samp> 最新版本 3.08 。新版修正好幾個說明文件的問題。<a href="ftp://ftp.imacat.idv.tw/pub/chklinks/chklinks-3.08.tar.gz" type="application/x-gzip">下載 <samp xml:lang="en">chklinks</samp> 3.08 版</a>。</p>
+</dd>
+
+
+<dt>2007-12-05</dt>
+
+<dd>
+<p><samp xml:lang="en">chklinks</samp> 最新版本 3.07 。所需 <acronym title="Practical Extraction and Reporting Language" xml:lang="en">Perl</acronym> 版本號碼改用相容於舊版的號碼格式，以消除 <acronym title="Practical Extraction and Reporting Language" xml:lang="en">Perl</acronym> 5.10 的警告訊息。版權更新為 <a href="http://www.gnu.org/licenses/gpl-3.0.html" hreflang="en" xml:lang="en"><abbr title="GNU General Public License version 3" xml:lang="en">GPLv3</abbr></a> 。<a href="ftp://ftp.imacat.idv.tw/pub/chklinks/chklinks-3.07.tar.gz" type="application/x-gzip">下載 <samp xml:lang="en">chklinks</samp> 3.07 版</a>。</p>
+</dd>
+
+
+<dt>2007-06-08</dt>
+
+<dd>
+<p><samp xml:lang="en">chklinks</samp> 最新版本 3.06 。測試程式修正。<a href="ftp://ftp.imacat.idv.tw/pub/chklinks/chklinks-3.06.tar.gz" type="application/x-gzip">下載 <samp xml:lang="en">chklinks</samp> 3.06 版</a>。</p>
+</dd>
+
+
+<dt>2007-06-07</dt>
+
+<dd>
+<p><samp xml:lang="en">chklinks</samp> 最新版本 3.05 。修正 <acronym title="Practical Extraction and Reporting Language" xml:lang="en">Perl</acronym> 5.8 版以前無 <abbr title="unicode translation format" xml:lang="en">UTF</abbr>-8 模式的問題。<a href="ftp://ftp.imacat.idv.tw/pub/chklinks/chklinks-3.05.tar.gz" type="application/x-gzip">下載 <samp xml:lang="en">chklinks</samp> 3.05 版</a>。</p>
+</dd>
+
+
+<dt>2007-06-06</dt>
+
+<dd>
+<p><samp xml:lang="en">chklinks</samp> 最新版本 3.04 。修正說明文件。<a href="ftp://ftp.imacat.idv.tw/pub/chklinks/chklinks-3.04.tar.gz" type="application/x-gzip">下載 <samp xml:lang="en">chklinks</samp> 3.04 版</a>。</p>
+</dd>
+
+
+<dt>2007-06-06</dt>
+
+<dd>
+<p><samp xml:lang="en">chklinks</samp> 最新版本 3.03 。修正 <a href="http://search.cpan.org/dist/HTML-Parser/" hreflang="en" xml:lang="en"><samp>HTML::Parser</samp></a> 的原始 <abbr title="unicode translation format" xml:lang="en">UTF</abbr>-8 警告訊息，加上支援以 <a href="http://search.cpan.org/dist/Module-Build/" hreflang="en" xml:lang="en"><samp>Module::Build</samp></a> 安裝。<a href="ftp://ftp.imacat.idv.tw/pub/chklinks/chklinks-3.03.tar.gz" type="application/x-gzip">下載 <samp xml:lang="en">chklinks</samp> 3.03 版</a>。</p>
+</dd>
+
+
+<dt>2006-06-02</dt>
+
+<dd>
+<p><samp xml:lang="en">chklinks</samp> 最新版本 3.02 。更正錯誤的數位簽章。<a href="ftp://ftp.imacat.idv.tw/pub/chklinks/chklinks-3.02.tar.gz" type="application/x-gzip">下載 <samp xml:lang="en">chklinks</samp> 3.02 版</a>。</p>
+</dd>
+
+
+<dt>2006-05-31</dt>
+
+<dd>
+<p><samp xml:lang="en">chklinks</samp> 最新版本 3.01 。修正 <samp xml:lang="en">Makefile.PL</samp> 漏掉的相依模組，並把漏掉的 <abbr title="HyperText Markup Language" xml:lang="en">HTML</abbr> 文件加回來。<a href="ftp://ftp.imacat.idv.tw/pub/chklinks/chklinks-3.01.tar.gz" type="application/x-gzip">下載 <samp xml:lang="en">chklinks</samp> 3.01 版</a>。</p>
+</dd>
+
+
+<dt>2006-05-30</dt>
+
+<dd>
+<p><samp xml:lang="en">chklinks</samp> 最新版本 3.00 。改用 <a href="http://search.cpan.org/dist/HTML-Parser/" hreflang="en" xml:lang="en"><samp>HTML::LinkExtor</samp></a> 解讀網頁並用 <a href="http://search.cpan.org/dist/libwww-perl/" hreflang="en" xml:lang="en"><samp>LWP::RobotUA</samp></a> 連線取得網頁。支援 <samp xml:lang="en">http</samp> 外的其它網址格式。支援網站的 <span xml:lang="en">Cookies</span> 。遵守 <samp xml:lang="en">robots.txt</samp> 設定的規則。<a href="ftp://ftp.imacat.idv.tw/pub/chklinks/chklinks-3.00.tar.gz" type="application/x-gzip">下載 <samp xml:lang="en">chklinks</samp> 3.00 版</a>。</p>
+</dd>
+
+
+<dt>2005-10-02</dt>
+
+<dd>
+<p>網站樣式調整，加上無障礙網頁的設計，以 <abbr title="Cascading StyleSheets" xml:lang="en">CSS</abbr> 邊框代替 <samp xml:lang="en">&lt;hr /&gt;</samp> ，以符合無障礙網頁空間的要求。</p>
+</dd>
+
+
+<dt>2005-04-27</dt>
+
+<dd>
+<p>網站上的<q>繁體中文</q>字樣更正為<q>正體中文</q>。</p>
+</dd>
+
+
+<dt>2003-05-26</dt>
+
+<dd>
+<p><samp xml:lang="en">chklinks</samp> 最新版本 2.02 。預設由檢查本頁就好，改為檢查整個網站。這樣比較符合大多數的需求。<a href="ftp://ftp.imacat.idv.tw/pub/chklinks/chklinks-2.02.tar.gz" type="application/x-gzip">下載 <samp xml:lang="en">chklinks</samp> 2.02 版</a>。</p>
+</dd>
+
+
+<dt>2003-05-25</dt>
+
+<dd>
+<p><samp xml:lang="en">chklinks</samp> 最新版本 2.01 。加上安裝程式、附加檔案與 <abbr title="plain old document" xml:lang="en">POD</abbr> 說明檔。<a href="ftp://ftp.imacat.idv.tw/pub/chklinks/chklinks-2.01.tar.gz" type="application/x-gzip">下載 <samp xml:lang="en">chklinks</samp> 2.01 版</a>。</p>
+</dd>
+
+
+<dt>2003-05-25</dt>
+
+<dd>
+<p><samp xml:lang="en">chklinks</samp> 最新版本 2.0.0 。首次公開上傳到 <span xml:lang="en">SourceForge</span> 。只有主程式。<a href="ftp://ftp.imacat.idv.tw/pub/chklinks/chklinks-2.0.0.tar.gz" type="application/x-gzip">下載 <samp xml:lang="en">chklinks</samp> 2.0.0 版</a>。</p>
+</dd>
+
+
+<dt>2003-05-19</dt>
+
+<dd>
+<p><span xml:lang="en">SourceForge</span> 專案通過。</p>
+</dd>
+
+
+<dt>2003-05-18</dt>
+
+<dd>
+<p>申請 <span xml:lang="en">SourceForge</span> 專案。</p>
+</dd>
+
+</dl>
+
+
+<h2>說明</h2>
+
+<p><dfn><samp xml:lang="en">chklinks</samp></dfn> 是單執行緒的 <acronym title="Practical Extraction and Reporting Language" xml:lang="en">Perl</acronym> 連結檢查程式，用來檢查網站上的超連結有沒有疏漏。</p>
+
+<p><samp xml:lang="en">chklinks</samp> 和 <a href="http://linkchecker.sourceforge.net/" hreflang="en" xml:lang="en"><samp>linkchecker</samp></a> 不同之處在於，<samp xml:lang="en">chklinks</samp> 不是多執行緒的程式。 <samp xml:lang="en">chklinks</samp> 檢查時，不會同時啟動一大堆連線同步檢查，耗盡系統資源，導致當機。對大多數網管和使用者而言，這樣做安全得多。</p>
+
+<p><samp xml:lang="en">chklinks</samp> 遵守 <samp xml:lang="en">robots.txt</samp> 設定的規則。若妳的網站拒絕自動網頁程式，導致 <samp xml:lang="en">chklinks</samp> 無法執行，請在妳的 <samp xml:lang="en">robots.txt</samp> ，加入下列兩行，放行 <samp xml:lang="en">chklinks</samp> ：</p>
+
+<blockquote xml:lang="en"><pre>
+User-agent: chklinks
+Disallow:
+</pre></blockquote>
+
+<p><samp xml:lang="en">chklinks</samp> 使用 <a href="http://search.cpan.org/dist/libwww-perl/" hreflang="en" xml:lang="en"><samp>LWP::RobotUA</samp></a> 連線，支援下列通訊協定： <samp xml:lang="en">http</samp> 、 <samp xml:lang="en">https</samp> 、 <samp xml:lang="en">ftp</samp> 、 <samp xml:lang="en">gopher</samp> 及 <samp xml:lang="en">file</samp> 。<samp xml:lang="en">chklinks</samp> 也可以檢查一般的檔案。（若要使用 <samp xml:lang="en">https</samp> 通訊協定，需先安裝 <a href="http://search.cpan.org/dist/Crypt-SSLeay/" hreflang="en" xml:lang="en"><samp>Crypt::SSLeay</samp></a> 。這是 <a href="http://search.cpan.org/dist/libwww-perl/" hreflang="en" xml:lang="en"><samp>LWP::RobotUA</samp></a> 的需求。）</p>
+
+<p><samp xml:lang="en">chklinks</samp> 支援網站的 <span xml:lang="en">Cookies</span> 。</p>
+
+
+<h2>系統需求</h2>
+
+<ol>
+<li><p><acronym title="Practical Extraction and Reporting Language" xml:lang="en">Perl</acronym> 5.6 或以上。我還沒有在更早的版本上成功執行過。若妳可以在更早的版本上執行，請告訴我。妳可以輸入 <q xml:lang="en"><samp>perl -v</samp></q> 查詢妳目前的 <acronym title="Practical Extraction and Reporting Language" xml:lang="en">Perl</acronym> 版本。目前大多數的 <span xml:lang="en">Unix</span> 系統都有 <acronym title="Practical Extraction and Reporting Language" xml:lang="en">Perl</acronym> 。如果妳沒有 <acronym title="Practical Extraction and Reporting Language" xml:lang="en">Perl</acronym> 或需要昇級，可以到 <a href="http://www.perl.com/" hreflang="en"><acronym title="Practical Extraction and Reporting Language" xml:lang="en">Perl</acronym> 網站</a>下載安裝最新版 <acronym title="Practical Extraction and Reporting Language" xml:lang="en">Perl</acronym> 。若妳是用 <span xml:lang="en"><abbr title="Microsoft">MS</abbr>-Windows</span> ，可以下載安裝 <a href="http://www.activestate.com/" hreflang="en"><span xml:lang="en">ActiveState</span> 公司的 <span xml:lang="en">ActivePerl</span></a> 。</p></li>
+
+<li><p>需搭配的 <acronym title="Practical Extraction and Reporting Language" xml:lang="en">Perl</acronym> 模組：</p>
+    
+    <dl>
+    <dt><a href="http://search.cpan.org/dist/URI/" hreflang="en" xml:lang="en"><samp>URI</samp></a></dt>
+    
+    <dd>
+    <p>這是解析、處理網址用的。妳可以<a href="http://search.cpan.org/dist/URI/" hreflang="en">由 <acronym title="Comprehensive Perl Archive Network" xml:lang="en">CPAN</acronym> 模組庫下載安裝 <samp xml:lang="en">URI</samp> </a>，或用 <span xml:lang="en"><samp>CPAN</samp> Shell</span> 執行 <q xml:lang="en"><samp>cpan URI</samp></q> 安裝，或用 <span xml:lang="en"><samp>CPANPLUS</samp> Shell</span> 執行 <q xml:lang="en"><samp>cpanp i URI</samp></q> 安裝。若妳是 <span xml:lang="en">Debian/Ubandu Linux</span> 使用者，可以執行 <q xml:lang="en"><samp>apt-get install liburi-perl</samp></q> 安裝。若妳是 <span xml:lang="en">Red Hat/Fedora/CentOS Linux</span> 使用者，可以執行 <q xml:lang="en"><samp>yum install perl-URI</samp></q> 安裝。若妳是 <span xml:lang="en">FreeBSD</span> 使用者，可以執行 <q xml:lang="en"><samp>ports install p5-URI</samp></q> 安裝。若妳是 <span xml:lang="en">ActivePerl</span> 使用者，可以執行 <q xml:lang="en"><samp>ppm install URI</samp></q> 安裝。</p>
+    </dd>
+    
+    <dt><a href="http://search.cpan.org/dist/HTML-Parser/" hreflang="en" xml:lang="en"><samp>HTML::LinkExtor</samp></a></dt>
+    
+    <dd>
+    <p>這是由網頁裏找出連結用的。 <samp xml:lang="en">HTML::LinkExtor</samp> 為 <a href="http://search.cpan.org/dist/HTML-Parser/" hreflang="en" xml:lang="en">HTML-Parser</a> 中的模組。妳可以<a href="http://search.cpan.org/dist/HTML-Parser/" hreflang="en">由 <acronym title="Comprehensive Perl Archive Network" xml:lang="en">CPAN</acronym> 模組庫下載安裝 <samp xml:lang="en">HTML::LinkExtor</samp> </a>，或用 <span xml:lang="en"><samp>CPAN</samp> Shell</span> 執行 <q xml:lang="en"><samp>cpan HTML::LinkExtor</samp></q> 安裝，或用 <span xml:lang="en"><samp>CPANPLUS</samp> Shell</span> 執行 <q xml:lang="en"><samp>cpanp i HTML::LinkExtor</samp></q> 安裝。若妳是 <span xml:lang="en">Debian/Ubandu Linux</span> 使用者，可以執行 <q xml:lang="en"><samp>apt-get install libhtml-parser-perl</samp></q> 安裝。若妳是 <span xml:lang="en">Red Hat/Fedora/CentOS Linux</span> 使用者，可以執行 <q xml:lang="en"><samp>yum install perl-HTML-Parser</samp></q> 安裝。若妳是 <span xml:lang="en">FreeBSD</span> 使用者，可以執行 <q xml:lang="en"><samp>ports install p5-HTML-Parser</samp></q> 安裝。若妳是 <span xml:lang="en">ActivePerl</span> 使用者，可以執行 <q xml:lang="en"><samp>ppm install HTML::LinkExtor</samp></q> 安裝。</p>
+    </dd>
+    
+    <dt><a href="http://search.cpan.org/dist/libwww-perl/" hreflang="en" xml:lang="en"><samp>LWP::RobotUA</samp></a></dt>
+    
+    <dd>
+    <p>這是抓取網頁用的。 <samp xml:lang="en">LWP::RobotUA</samp> 為 <a href="http://search.cpan.org/dist/libwww-perl/" hreflang="en" xml:lang="en">libwww-perl</a> 中的模組。妳可以<a href="http://search.cpan.org/dist/libwww-perl/" hreflang="en">由 <acronym title="Comprehensive Perl Archive Network" xml:lang="en">CPAN</acronym> 模組庫下載安裝 <samp xml:lang="en">LWP::RobotUA</samp> </a>，或用 <span xml:lang="en"><samp>CPAN</samp> Shell</span> 執行 <q xml:lang="en"><samp>cpan LWP::RobotUA</samp></q> 安裝，或用 <span xml:lang="en"><samp>CPANPLUS</samp> Shell</span> 執行 <q xml:lang="en"><samp>cpanp i LWP::RobotUA</samp></q> 安裝。若妳是 <span xml:lang="en">Debian/Ubandu Linux</span> 使用者，可以執行 <q xml:lang="en"><samp>apt-get install libwww-perl</samp></q> 安裝。若妳是 <span xml:lang="en">Red Hat/Fedora/CentOS Linux</span> 使用者，可以執行 <q xml:lang="en"><samp>yum install perl-libwww-perl</samp></q> 安裝。若妳是 <span xml:lang="en">FreeBSD</span> 使用者，可以執行 <q xml:lang="en"><samp>ports install p5-libwww</samp></q> 安裝。若妳是 <span xml:lang="en">ActivePerl</span> 使用者，可以執行 <q xml:lang="en"><samp>ppm install LWP::RobotUA</samp></q> 安裝。</p>
+    </dd>
+    </dl>
+    
+    <p>若妳由 <samp xml:lang="en">CPAN</samp> 或 <span xml:lang="en"><samp>CPANPLUS</samp> Shell</span> 安裝 <samp xml:lang="en">chklinks</samp> ，會自動幫妳安裝以上所需的模組。</p>
+</li>
+
+<li><p>選配的 <acronym title="Practical Extraction and Reporting Language" xml:lang="en">Perl</acronym> 模組：</p>
+    
+    <dl>
+    <dt><a href="http://search.cpan.org/dist/Crypt-SSLeay/" hreflang="en" xml:lang="en"><samp>Crypt::SSLeay</samp></a></dt>
+    
+    <dd>
+    <p>這是要讓 <a href="http://search.cpan.org/dist/libwww-perl/" hreflang="en" xml:lang="en"><samp>LWP::RobotUA</samp></a> 支援 <abbr title="Hypertext Transfer Protocol over Secure Socket Layer" xml:lang="en">HTTPS</abbr> 的功能。妳可以<a href="http://search.cpan.org/dist/Crypt-SSLeay/" hreflang="en">由 <acronym title="Comprehensive Perl Archive Network" xml:lang="en">CPAN</acronym> 模組庫下載安裝 <samp xml:lang="en">Crypt::SSLeay</samp> </a>，或用 <span xml:lang="en"><samp>CPAN</samp> Shell</span> 執行 <q xml:lang="en"><samp>cpan Crypt::SSLeay</samp></q> 安裝，或用 <span xml:lang="en"><samp>CPANPLUS</samp> Shell</span> 執行 <q xml:lang="en"><samp>cpanp i Crypt::SSLeay</samp></q> 安裝。若妳是 <span xml:lang="en">Debian/Ubandu Linux</span> 使用者，可以執行 <q xml:lang="en"><samp>apt-get install libcrypt-ssleay-perl</samp></q> 安裝。若妳是 <span xml:lang="en">Red Hat/Fedora/CentOS Linux</span> 使用者，可以執行 <q xml:lang="en"><samp>yum install perl-Crypt-SSLeay</samp></q> 安裝。若妳是 <span xml:lang="en">FreeBSD</span> 使用者，可以執行 <q xml:lang="en"><samp>ports install p5-Crypt-SSLeay</samp></q> 安裝。<a href="http://aspn.activestate.com/ASPN/Downloads/ActivePerl/PPM/Repository" hreflang="en">因加拿大聯邦政府的規定， <span xml:lang="en">ActiveState</span> 公司無法提供 <samp xml:lang="en">Crypt::SSLeay</samp> 的 <span xml:lang="en">ActivePerl <abbr title="Perl Package Manager">PPM</abbr></span> 套件安裝。</a>不過若妳是 <span xml:lang="en">ActivePerl</span> 使用者，還是可以改由其它套件庫，執行 <q xml:lang="en"><samp>ppm install http://theoryx5.uwinnipeg.ca/ppms/Crypt-SSLeay.ppd</samp></q> 安裝。</p>
+    </dd>
+    </dl>
+</li>
+</ol>
+
+
+<h2>下載</h2>
+
+<p><samp xml:lang="en">chklinks</samp> 的官方網站在：</p>
+
+<ul>
+<li><p><a href="http://chklinks.sourceforge.net/"><span xml:lang="en">SourceForge</span> 上的 <samp xml:lang="en">chklinks</samp> 網站</a>。</p></li>
+<li><p><a href="http://sourceforge.net/projects/chklinks/" hreflang="en"><samp xml:lang="en">chklinks</samp> <span xml:lang="en">SourceForge</span> 專案頁</a>。</p></li>
+<li><p><a href="http://search.cpan.org/dist/chklinks/" hreflang="en"><samp xml:lang="en">chklinks</samp> <abbr title="Comprehensive Perl Archive Network" xml:lang="en">CPAN</abbr> 專案頁</a>。</p></li>
+<li><p><a href="http://www.imacat.idv.tw/tech/chklinks.html">旅舍依瑪 <samp xml:lang="en">chklinks</samp> 網頁</a>。</p></li>
+</ul>
+
+<p>最新版 <samp xml:lang="en">chklinks</samp> 可由下列位址下載：</p>
+
+<ul>
+<li><p><a href="https://sourceforge.net/project/showfiles.php?group_id=81431" hreflang="en"><samp xml:lang="en">chklinks</samp> <span xml:lang="en">SourceForge</span> 下載頁</a>。</p></li>
+<li><p><a href="http://search.cpan.org/dist/chklinks/" hreflang="en"><samp xml:lang="en">chklinks</samp> <abbr title="Comprehensive Perl Archive Network" xml:lang="en">CPAN</abbr> 專案頁</a>。</p></li>
+<li><p><a href="ftp://ftp.imacat.idv.tw/pub/chklinks/">旅舍依瑪 <abbr title="File Transfer Protocol" xml:lang="en">FTP</abbr> 站</a>。</p></li>
+</ul>
+
+<p>依瑪貓的 <abbr title="Pretty Good Privacy" xml:lang="en">PGP</abbr> 公鑰在：</p>
+
+<ul>
+<li><p><a href="http://chklinks.sourceforge.net/pgpkey.asc" type="application/pgp-keys"><samp xml:lang="en">chklinks</samp> <span xml:lang="en">SourceForge</span> 網站上的依瑪貓 <abbr title="Pretty Good Privacy" xml:lang="en">PGP</abbr> 公鑰</a>。</p></li>
+<li><p><a href="http://www.imacat.idv.tw/me/pgpkey.asc" type="application/pgp-keys">旅舍依瑪上的依瑪貓 <abbr title="Pretty Good Privacy" xml:lang="en">PGP</abbr> 公鑰</a>。</p></li>
+</ul>
+
+
+<h2>安裝</h2>
+
+<h3>以 <a href="http://search.cpan.org/dist/ExtUtils-MakeMaker/" hreflang="en" xml:lang="en"><samp>ExtUtils::MakeMaker</samp></a> 安裝</h3>
+
+<p><samp xml:lang="en">chklinks</samp> 用 <acronym title="Practical Extraction and Reporting Language" xml:lang="en">Perl</acronym> 標準的 <a href="http://search.cpan.org/dist/ExtUtils-MakeMaker/" hreflang="en" xml:lang="en"><samp>ExtUtils::MakeMaker</samp></a> 安裝，程序如下：</p>
+
+<blockquote xml:lang="en"><pre>
+% perl Makefile.PL
+% make
+% make test
+% make install
+</pre></blockquote>
+
+<p>在 <q xml:lang="en"><samp>make install</samp></q> 前，請先確認妳有在安裝目錄存檔的權限。通常這時候要切換為 <samp xml:lang="en">root</samp> ，才能安裝存檔。</p>
+
+<p>若妳是用 <span xml:lang="en"><abbr title="Microsoft">MS</abbr>-Windows</span> 下的 <span xml:lang="en">ActivePerl</span> ， <samp xml:lang="en">make</samp> 請改用 <samp xml:lang="en">nmake</samp> 。 <a href="ftp://ftp.microsoft.com/Softlib/MSLFILES/nmake15.exe" type="application/x-dosexec"><samp xml:lang="en">nmake</samp> 可
+由微軟的 <abbr title="File Transfer Protocol" xml:lang="en">FTP</abbr> 站下載</a>。</p>
+
+<p>若要安裝到其它地方，請設定好 <samp xml:lang="en">PREFIX</samp> 。例如，一般使用者，要安裝在自己的目錄下時：</p>
+
+<blockquote xml:lang="en"><pre>
+% perl Makefile.PL PREFIX=/home/jessica
+</pre></blockquote>
+
+<p>要知道更多安裝選項的細節，請參閱 <a href="http://search.cpan.org/dist/ExtUtils-MakeMaker/" hreflang="en" xml:lang="en"><samp>ExtUtils::MakeMaker</samp></a> 的說明（請執行 <q xml:lang="en"><samp>perldoc ExtUtils::MakeMaker</samp></q> ）。</p>
+
+
+<h3>以 <a href="http://search.cpan.org/dist/Module-Build/" hreflang="en" xml:lang="en"><samp>Module::Build</samp></a> 安裝</h3>
+
+<p>若妳喜歡，也可以用 <a href="http://search.cpan.org/dist/Module-Build/" hreflang="en" xml:lang="en"><samp>Module::Build</samp></a> 安裝，程序如下：</p>
+
+<blockquote xml:lang="en"><pre>
+% perl Build.PL
+% ./Build
+% ./Build test
+% ./Build install
+</pre></blockquote>
+
+<p>在 <q xml:lang="en"><samp>./Build install</samp></q> 前，請先確認妳有在安裝目錄存檔的權限。通常這時候要切換為 <samp xml:lang="en">root</samp> ，才能安裝存檔。</p>
+
+<p>若要安裝到其它地方，請設定好 <samp xml:lang="en">--prefix</samp> 。例如，一般使用者，要安裝在自己的目錄下時：</p>
+
+<blockquote xml:lang="en"><pre>
+% perl Build.PL --prefix=/home/jessica
+</pre></blockquote>
+
+<p>要知道更多安裝選項的細節，請參閱 <a href="http://search.cpan.org/dist/Module-Build/" hreflang="en" xml:lang="en"><samp>Module::Build</samp></a> 的說明（請執行 <q xml:lang="en"><samp>perldoc Module::Build</samp></q> ）。</p>
+
+
+<h2>命令列參數</h2>
+
+<pre>
+./chklinks [參數] <var>網址1</var> [<var>網址2</var> [<var>網址3</var> &hellip;]]
+./chklinks [-h|-v]
+</pre>
+
+
+<dl>
+<dt xml:lang="en">-1,--onelevel</dt>
+
+<dd>
+<p>檢查本頁就好，不繼續查下去。</p>
+</dd>
+
+
+<dt xml:lang="en">-r,--recursive</dt>
+
+<dd>
+<p>檢查完整個網站。預設是 <samp xml:lang="en">--recursive</samp> 。</p>
+</dd>
+
+
+<dt xml:lang="en">-b,--below</dt>
+
+<dd>
+<p>只檢查該目錄下的連結。預設是 <samp xml:lang="en">--below</samp> 。</p>
+</dd>
+
+
+<dt xml:lang="en">-p,--parent</dt>
+
+<dd>
+<p>上溯到全站的連結。</p>
+</dd>
+
+
+<dt xml:lang="en">-l,--local</dt>
+
+<dd>
+<p>只檢查站上的連結，不檢查站外連結。</p>
+</dd>
+
+
+<dt xml:lang="en">-s,--span</dt>
+
+<dd>
+<p>檢查站外的連結（但不會查下去）。預設是 <samp xml:lang="en">--span</samp> 。</p>
+</dd>
+
+
+<dt xml:lang="en">-e,--exclude <var xml:lang="zh-tw">路徑</var></dt>
+
+<dd>
+<p>排除該路逕。把該路徑下的檔案當成站外連結，只檢查能不能連，不深入查下去。妳可以指定很多個 <samp xml:lang="en">--exclude</samp> 。</p>
+</dd>
+
+
+<dt xml:lang="en">-i,--include <var xml:lang="zh-tw">路徑</var></dt>
+
+<dd>
+<p>包含該路逕。和 <samp xml:lang="en">--exclude</samp> 效果相反，用來抵銷 <samp xml:lang="en">--exclude</samp> 。排後面的優先處理。</p>
+</dd>
+
+
+<dt xml:lang="en">-d,--debug</dt>
+
+<dd>
+<p>顯示詳細的執行訊息。越多個 <samp xml:lang="en">--debug</samp> ，訊息越詳細。</p>
+</dd>
+
+
+<dt xml:lang="en">-q,--quiet</dt>
+
+<dd>
+<p>關閉執行訊息。和 <samp xml:lang="en">--debug</samp> 效果相反，用來抵銷 <samp xml:lang="en">--debug</samp> 。</p>
+</dd>
+
+
+<dt xml:lang="en">-h, --help</dt>
+
+<dd>
+<p>顯示程式說明。</p>
+</dd>
+
+
+<dt xml:lang="en">-v, --version</dt>
+
+<dd>
+<p>顯示程式版本。</p>
+</dd>
+
+<dt xml:lang="en"><var xml:lang="zh-tw">網址1</var>, <var xml:lang="zh-tw">網址2</var>, <var xml:lang="zh-tw">網址3</var></dt>
+
+<dd>
+<p>要檢查的網站網址。</p>
+</dd>
+</dl>
+
+
+<h2>注意事項</h2>
+
+<ul>
+<li><p><samp xml:lang="en">chklinks</samp> 尚未遵守 <samp xml:lang="en">robots.txt</samp> 的 <a href="http://help.yahoo.com/help/us/ysearch/slurp/slurp-03.html" hreflang="en" xml:lang="en"><samp>Crawl-delay:</samp></a> 規則。不過這是 <a href="http://search.cpan.org/dist/libwww-perl/" hreflang="en" xml:lang="en"><samp>WWW::RobotRules</samp></a> 的問題，不是 <samp xml:lang="en">chklinks</samp> 的問題。</p></li>
+
+<li><p>若出現以下警告：</p>
+
+<blockquote xml:lang="en">
+<pre>Parsing of undecoded UTF-8 will give garbage when decoding entities at /usr/share/perl5/LWP/Protocol.pm line 114.</pre>
+</blockquote>
+
+    <p>這是 <a href="http://search.cpan.org/dist/libwww-perl/" hreflang="en" xml:lang="en"><samp>LWP::Protocol</samp></a> 1.43 版或之前的版本（ <samp>libwww-perl</samp> 5.805 版或之前的版本），碰上 <a href="http://search.cpan.org/dist/HTML-Parser/" hreflang="en" xml:lang="en"><samp>HTML::Parser</samp></a> 3.40 版或之後的版本及 <acronym title="Practical Extraction and Reporting Language" xml:lang="en">Perl</acronym> 5.8 版或之後的版本時，產生的問題。 <a href="http://search.cpan.org/dist/libwww-perl/" hreflang="en" xml:lang="en"><samp>LWP::Protocol</samp></a> 1.46 版以後（ <samp>libwww-perl</samp> 5.806 版以後），已解決這個問題。請昇級到最新版的 <a href="http://search.cpan.org/dist/libwww-perl/" hreflang="en" xml:lang="en"><samp>LWP::Protocol</samp></a> 。若妳因故無法昇級，請參閱 <a href="http://rt.cpan.org/Public/Bug/Display.html?id=20274" hreflang="en" xml:lang="en"><acronym title="Comprehensive Perl Archive Network">CPAN</acronym> RT Bug#20274 報告</a>，取得 <a href="http://search.cpan.org/dist/libwww-perl/" hreflang="en" xml:lang="en"><samp>LWP::Protocol</samp></a> 的修補程式。</p>
+</li>
+</ul>
+
+
+<h2>參考資料</h2>
+
+<p><a href="http://search.cpan.org/dist/libwww-perl/" hreflang="en" xml:lang="en"><samp>LWP::UserAgent</samp></a> 、 <a href="http://search.cpan.org/dist/libwww-perl/" hreflang="en" xml:lang="en"><samp>LWP::RobotUA</samp></a> 、 <a href="http://search.cpan.org/dist/libwww-perl/" hreflang="en" xml:lang="en"><samp>WWW::RobotRules</samp></a> 、 <a href="http://search.cpan.org/dist/URI/" hreflang="en" xml:lang="en"><samp>URI</samp></a> 、 <a href="http://search.cpan.org/dist/HTML-Parser/" hreflang="en" xml:lang="en"><samp>HTML::LinkExtor</samp></a> 、 <span xml:lang="en">Bastian Kleineidam</span> 的 <a href="http://linkchecker.sourceforge.net/" hreflang="en" xml:lang="en"><samp>linkchecker</samp></a> 及 <span xml:lang="en">W3C-LinkChecker</span> <a href="http://validator.w3.org/checklink" hreflang="en" xml:lang="en"><samp>checklink</samp></a> 。</p>
+
+
+<h2>版權聲明</h2>
+
+<p>版權所有 &copy; 2003-2007 依瑪貓。</p>
+
+<p>本程式是自由軟體，您可以遵照自由軟體基金會 <span xml:lang="en">(Free Software Foundation)</span> 出版的 <cite><acronym title="GNU&rsquo;s Not UNIX" xml:lang="en">GNU</acronym> 通用公共許可證</cite>條款 <span xml:lang="en">(<cite><acronym title="GNU&rsquo;s Not UNIX">GNU</acronym> General Public License</cite>)</span> 第三版來修改和重新發佈這一程式，或者自由選擇使用任何更新的版本。</p>
+
+<p>發佈這一程式的目的是希望它有用，但沒有任何擔保。甚至沒有適合特定目的而隱含的擔保。更詳細的情況請參閱 <cite><acronym title="GNU&rsquo;s Not UNIX" xml:lang="en">GNU</acronym> 通用公共許可證</cite>。</p>
+
+<p>您應該已經和程式一起收到一份 <cite><acronym title="GNU&rsquo;s Not UNIX" xml:lang="en">GNU</acronym> 通用公共許可證</cite>的副本。如果還沒有，參閱<samp>&lt;<a href="http://www.gnu.org/licenses/" hreflang="en">http://www.gnu.org/licenses/</a>&gt;</samp>。</p>
+
+
+<h2>版本紀錄</h2>
+
+<p>請閱讀 <samp xml:lang="en">NEWS</samp> 檔，查看程式的演變、新增的功能和修補的錯誤。</p>
+
+
+<h2>支援協助</h2>
+
+<p><samp xml:lang="en">chklinks</samp> 網站架在 <a href="https://sourceforge.net/" hreflang="en" xml:lang="en">SourceForge</a> 、 <a href="http://www.cpan.org/" hreflang="en" xml:lang="en"><acronym title="Comprehensive Perl Archive Network">CPAN</acronym></a> 與 <a href="http://www.imacat.idv.tw/">旅舍依瑪</a>。索取最新資訊，請駕臨：</p>
+
+<ul>
+<li><p><a href="http://chklinks.sourceforge.net/"><span xml:lang="en">SourceForge</span> 上的 <samp xml:lang="en">chklinks</samp> 網站</a>。</p></li>
+<li><p><a href="http://sourceforge.net/projects/chklinks/" hreflang="en"><samp xml:lang="en">chklinks</samp> <span xml:lang="en">SourceForge</span> 專案頁</a>。</p></li>
+<li><p><a href="http://search.cpan.org/dist/chklinks/" hreflang="en"><samp xml:lang="en">chklinks</samp> <acronym title="Comprehensive Perl Archive Network" xml:lang="en">CPAN</acronym> 專案頁</a>。</p></li>
+<li><p><a href="http://www.imacat.idv.tw/tech/chklinks.html">旅舍依瑪 <samp xml:lang="en">chklinks</samp> 網頁</a>。</p></li>
+</ul>
+
+<p>在 <a href="https://sourceforge.net/" hreflang="en" xml:lang="en">SourceForge</a> 上有一個 <a href="mailto:chklinks-users&#64;lists.sourceforge.net"><samp xml:lang="en">chklinks</samp> 的郵件通訊</a> 。使用上的問題、建議或錯誤回報，請提到通訊上討論。它是 <a href="http://www.list.org/" hreflang="en" xml:lang="en">Mailman</a> 的郵件通訊。若要加入，請到 <a href="https://lists.sourceforge.net/lists/listinfo/chklinks-users" hreflang="en"><samp xml:lang="en">chklinks</samp> 郵件通訊的網頁</a> 。妳也可以寫信到 <a href="mailto:chklinks-users-request&#64;lists.sourceforge.net"><acronym title="electronic mail" xml:lang="en">E-mail</acronym> 指令信箱</a>，標題填上 <samp xml:lang="en">help</samp> ，索取 <acronym title="electronic mail" xml:lang="en">E-mail</acronym> 指令說明。</p>
+
+</div>
+
+
+<hr />
+<div id="footer" class="footer" title="頁尾區">
+<address><a href="mailto:imacat&#64;mail.imacat.idv.tw">依瑪貓</a>，初稿 2003-05-25 ，上次更新日期 2008-11-18</address>
+
+<address>版權所有 &copy; 2003-2008 依瑪貓，欲轉載引用請先閱讀<a href="fdl.txt">版權聲明</a></address>
+</div>
+
+</body>
+</html>

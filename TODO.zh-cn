@@ -1,0 +1,15 @@
+* chklinks 还不支援登入帐号密码的功能。 W3C-LinkChecker 有支援这个功能
+  。若不是 Digest 登入，只是 Basic 登入，你可以先用像是
+  http://user:pass@some.where.com/some/path 的语法登入。不过请不要这样
+  做。任何人只要用 ps 指令，就看得到密码。如果这时候系统有入侵者偷偷溜
+  进来，也可以看得到。而且这样写在指令中的密码，也会存在你的指令记录档
+  中。
+
+* 应该可以支援 mailto: 的网址，检查其 DNS/MX 是否可用。 Bastian
+  Kleineidam 的 linkchecker 有支援这个功能。
+
+* 一般档案的支援目前只在 Unix 和 MS-Windows 上测试过，还需要在其它作业
+  系统如 VMS 及 Mac 上测试能不能运作。
+
+* chklinks 尚未遵守 robots.txt 的 Crawl-delay: 规则。不过这是
+  WWW::RobotRules 的问题，不是 chklinks 的问题。

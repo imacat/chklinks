@@ -1,0 +1,58 @@
+This file contains message digests of all files listed in MANIFEST,
+signed via the Module::Signature module, version 0.55.
+
+To verify the content in this distribution, first make sure you have
+Module::Signature installed, then type:
+
+    % cpansign -v
+
+It will check each file's integrity, as well as the signature's
+validity.  If "==> Signature verified OK! <==" is not displayed,
+the distribution may already have been compromised, and you should
+not run its Makefile.PL or Build.PL.
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+SHA1 91ced1a733e7448edc19eab22482508d58d7b284 AUTHORS
+SHA1 c4c98cc9e7ac5e119752587d0322280a7a71d205 AUTHORS.zh-cn
+SHA1 eb60ee204fcf7244fc0774ac34d05a35a281e82b AUTHORS.zh-tw
+SHA1 8f43b147c64db8e26b5d23d6bb24eb6657086cf7 Build.PL
+SHA1 8624bcdae55baeef00cd11d5dfcfa60f68710a02 COPYING
+SHA1 75aac7f77e344c5729399d323beea3013d43be2d Changes
+SHA1 85511344983264b042b7c9908b583f9ffc2883b0 INSTALL
+SHA1 6c76a11efb973c28843dd78cd733916d435486dc INSTALL.zh-cn
+SHA1 3964e72811c189abdf0289115cbc6cbb5de02263 INSTALL.zh-tw
+SHA1 60d324fbf0b35d11d8fd87987570cedbace38bd8 MANIFEST
+SHA1 de90a1e81bfc43c237b52011ea2537a2436971fa META.yml
+SHA1 6f0121c588264962273ca3b011f02e1c5ca4c9e3 Makefile.PL
+SHA1 9a30816755a9c25da556ef89435544c3428849a4 NEWS
+SHA1 d4ba36b2a1ecf22309d47666945c26b0f8f87e14 README
+SHA1 ffdefa6237871eccdf1a1be0f52981b20db038b0 README.zh-cn
+SHA1 f507818867704af42bdfb80d5d9752a186522015 README.zh-tw
+SHA1 fe6cf3c3671ab077d29c6aeb64b9db9b26d107bb THANKS
+SHA1 8e4323b6f056b6e3a93e7b3b0b30eb4bd249cd67 THANKS.zh-cn
+SHA1 424427d2171109c68c241fc58784469ba7f0fa6b THANKS.zh-tw
+SHA1 0cbe7f0abc164955d82d31e84a93d032ced8fd87 TODO
+SHA1 96fd7c6f911a55c0a2592986c23a3c4e7c01afad TODO.zh-cn
+SHA1 44fbd7b0e7dd71d7b5db32cdb04a32b1659eb02e TODO.zh-tw
+SHA1 d91e0060e0bcc305fb4823ccc229f91e8c550a81 chklinks
+SHA1 bd986dcd9826fa048b1f159908e282a893ae7585 chklinks.en.html
+SHA1 25bf7528bfb773674a0fbb346e51e53b91231d21 chklinks.zh-cn.html
+SHA1 ff354f25166b0783a3d23729ee1b379823b124e5 chklinks.zh-tw.html
+SHA1 bd75d59f9d7d9731bfabdc48ecd19e704d218e38 fdl.txt
+SHA1 520fdcf4374af210380db9e0fdaea44c904a15fc pgpkey.asc
+SHA1 525f414c7a0aadc61240a4b0959ca2cda7514c75 t/00-signature.t
+SHA1 c58eed31af883caea4c3f4d9f963c5057ffe47be t/01-basic.t
+SHA1 b85626024d610808bd0909989dcfb9fb20a40485 t/99-pod.t
+SHA1 44d1b4b0f06828f3408981ee63f6462ba0fdf1c9 t/htdocs/dir01/start.html
+SHA1 daff57a412711803ed645c8f868dfec64b2e66d0 t/htdocs/dir01/test01.html
+SHA1 55800ebcc4a0ac8583e763499f98660fff117f33 t/htdocs/stylesheets/test.css
+SHA1 e1fc75f156071ee26e5892db26af16ddfaec3316 t/htdocs/test03.html
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+
+iD8DBQFHVvLHi9gubzC5S1wRAo/eAJwKjrbrXSfx9KSbIivDK3rj2qauqwCeIWBl
+uZXV8T7lGCfm3z4oKu8jBHo=
+=F4t/
+-----END PGP SIGNATURE-----
