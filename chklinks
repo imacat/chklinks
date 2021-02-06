@@ -49,7 +49,7 @@ sub rep_uri($);
 
 our ($THIS_FILE, $VERSION, $VERBOSE);
 $THIS_FILE = basename($0);
-$VERSION = "3.09";
+$VERSION = "3.10";
 $VERBOSE = 1;
 
 our (@STARTS, $RECURSIVE, $PARENT, $IS_LOCAL, @EXCLUDES);
