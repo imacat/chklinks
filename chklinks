@@ -18,58 +18,47 @@
 
 # First written: 2003-04-12
 
+package main;
 use 5.006;
 use strict;
 use warnings;
-use Config qw();
-use Cwd qw(getcwd);
 use File::Basename qw(basename);
-use File::Spec qw();
 use Getopt::Long qw(GetOptions);
-use HTML::LinkExtor qw();
-use HTTP::Request qw();
 use HTTP::Cookies qw();
 use LWP::RobotUA qw();
-use Socket qw(inet_aton);
 use Sys::Hostname qw(hostname);
-use URI qw();
-use URI::Escape qw(uri_escape uri_unescape);
 # Prototype declaration
 sub main();
 sub parse_args();
 sub check_links($);
-sub fetch_redir($);
-sub fetch_noredir($);
-sub get_links($$);
-sub proc_link_val($$);
-sub is_excluded($);
-sub get_ua($);
-sub get_target($);
-sub noreq_key($);
-sub rep_uri($);
 
-use vars qw($THIS_FILE $VERSION $VERBOSE);
+our ($THIS_FILE, $VERBOSE);
+use vars qw($VERSION);
 $THIS_FILE = basename($0);
-$VERSION = "3.09";
+$VERSION = "3.9901";
 $VERBOSE = 1;
 
-use vars qw(@STARTS $RECURSIVE $PARENT $NOREMOTE @EXCLUDES);
-use vars qw($UASTR %UA %TARGETS %URIS %REFS $COOKIE_JAR);
-use vars qw($LOCAL_TARGET @LOCALS %LFOUND $STARTDIR @REMOTES %RFOUND);
-use vars qw($TOTAL $SUCCESS %NOREQ_HOSTS %ALLOWED_SCHEMES);
-$UASTR = "$THIS_FILE-robot/$VERSION (using " . (LWP::RobotUA->can("_agent")?
-    LWP::RobotUA->_agent: "libwww-perl/" . $LWP::VERSION) . ")";
-%UA = qw();
-%TARGETS = qw();
+our (%CONF, $UA, %URIS, $LOCAL_TARGET);
+use vars qw(@STARTS);
+%CONF = qw();
+$CONF{"EXCLUDES"} = [];
+$UA = new LWP::RobotUA(
+    "agent"         => "$THIS_FILE-robot/$VERSION (using "
+                        . (LWP::RobotUA->can("_agent")?
+                            LWP::RobotUA->_agent:
+                            "libwww-perl/" . $LWP::VERSION)
+                        . ")",
+    "from"          => (getlogin or getpwuid $> or $> or $THIS_FILE)
+                        . "@" . hostname,
+    "keep_alive"    => 1,
+    "cookie_jar"    => new HTTP::Cookies,
+);
 %URIS = qw();
-%REFS = qw();
-$COOKIE_JAR = new HTTP::Cookies;
-%NOREQ_HOSTS = qw();
-$RECURSIVE = 1;
-$PARENT = 0;
-$NOREMOTE = 0;
-@EXCLUDES = qw();
-%ALLOWED_SCHEMES = map { $_ => 1 } qw(http https ftp file gopher);
+undef $LOCAL_TARGET;
+@STARTS = qw();
+use constant DEFAULT_RECURSIVE => 1;
+use constant DEFAULT_PARENT => 0;
+use constant DEFAULT_NOREMOTE => 0;
 
 use vars qw($VERMSG $SHORTHELP $HELPMSG);
 $VERMSG = "$THIS_FILE v$VERSION by imacat <imacat\@mail.imacat.idv.tw>";
@@ -109,6 +98,25 @@ sub main() {
     # Parse the arguments
     parse_args;
     
+    $_ = new URI("/home/imacat/tmp");
+    print "scheme: ".(defined $_->scheme? "\"".$_->scheme."\"": "(undef)")."\n";
+    #print "host: ".(defined $_->host? "\"".$_->host."\"": "(undef)")."\n";
+    
+    $_ = new URI("http://www.imacat.idv.tw/tech/reslog.html");
+    print "scheme: ".(defined $_->scheme? "\"".$_->scheme."\"": "(undef)")."\n";
+    print "host: ".(defined $_->host? "\"".$_->host."\"": "(undef)")."\n";
+    
+    $_ = new URI("http:///tech/reslog.html");
+    print "scheme: ".(defined $_->scheme? "\"".$_->scheme."\"": "(undef)")."\n";
+    print "host: ".(defined $_->host? "\"".$_->host."\"": "(undef)")."\n";
+    
+    print _private::URI->is_abs(new URI("/home/imacat/tmp"))."\n";
+    print _private::URI->is_abs(new URI("http://www.imacat.idv.tw/tech/reslog.html"))."\n";
+    print _private::URI->is_abs(new URI("http:///tech/reslog.html"))."\n";
+    
+    $_ = "\\\\Rinse\\imacat\\tmp";
+    chdir $_                            or die "$THIS_FILE: $_: $!";
+    
     # Check each URL
     check_links $_ foreach @STARTS;
     
@@ -125,14 +133,14 @@ sub parse_args() {
     eval {
         local $SIG{"__WARN__"} = sub { die $_[0]; };
         Getopt::Long::Configure(qw(no_auto_abbrev bundling));
-        GetOptions( "onelevel|1"=>sub { $RECURSIVE = 0; },
-                    "recursive|r"=>sub { $RECURSIVE = 1; },
-                    "below|b"=>sub { $PARENT = 0; },
-                    "parent|p"=>sub { $PARENT = 1; },
-                    "local|l"=>sub { $NOREMOTE = 1; },
-                    "span|s"=>sub { $NOREMOTE = 0; },
-                    "exclude|e=s"=>sub { unshift @EXCLUDES, "-" . $_[1]; },
-                    "include|i=s"=>sub { unshift @EXCLUDES, "+" . $_[1]; },
+        GetOptions( "onelevel|1"=>sub { $CONF{"RECURSIVE"} = 0; },
+                    "recursive|r"=>sub { $CONF{"RECURSIVE"} = 1; },
+                    "below|b"=>sub { $CONF{"PARENT"} = 0; },
+                    "parent|p"=>sub { $CONF{"PARENT"} = 1; },
+                    "local|l"=>sub { $CONF{"NOREMOTE"} = 1; },
+                    "span|s"=>sub { $CONF{"NOREMOTE"} = 0; },
+                    "exclude|e=s"=>sub { unshift @{$CONF{"EXCLUDES"}}, "-" . $_[1]; },
+                    "include|i=s"=>sub { unshift @{$CONF{"EXCLUDES"}}, "+" . $_[1]; },
                     "debug|d+"=>\$VERBOSE,
                     "quiet|q"=>sub { $VERBOSE-- if $VERBOSE > 0; },
                     "help|h"=>sub { print $HELPMSG; exit 0; },
@@ -147,515 +155,649 @@ sub parse_args() {
     # Arguments are URLs
     @STARTS = qw();
     while (@ARGV > 0) {
-        my ($uri, $uritext);
-        $uritext = shift @ARGV;
-        $uri = new URI($uritext);
-        # Single letter scheme is assumed to be a volumn label
-        # This is for MSWin32
-        $uri->scheme(undef) if defined $uri->scheme && $uri->scheme =~ /^[a-z]$/i;
-        # URI without a scheme is assumed to be a local file
-        if (!defined $uri->scheme) {
-            # Systems with symbolic links -- rel2abs() is not trustworthy, use URI->abs().
-            if ($Config::Config{"d_symlink"}) {
-                my $base;
-                $base = getcwd;
-                $base =~ s/\/$//;
-                $base =~ s/^\///;
-                $base = new URI("file://localhost/$base/");
-                $uri = new URI(join("/", File::Spec->splitdir($uritext)));
-                $uri = $uri->abs($base);
-            # Systems without symbolic links -- we assume rel2abs() is trustworthy.
-            # Like MSWin32
-            } else {
-                $uri = new URI("file://localhost/" . join("/", File::Spec->splitdir(File::Spec->rel2abs($uritext))));
-                $uri->scheme("file");
-                $uri->host("localhost");
-            }
-        }
-        if (!exists $ALLOWED_SCHEMES{$uri->scheme}) {
-            warn "$THIS_FILE: WARNING: $uritext: Skipping URI with unsupported scheme " . $uri->scheme . "\n"
-                if $VERBOSE > 0;
-            next;
-        }
-        # file scheme is OK without a host -- it is localhost
-        if ($uri->scheme eq "file") {
-            $uri->host("localhost") if !defined $uri->host || $uri->host eq "";
-            if ($uri->host ne "localhost") {
-                warn "$THIS_FILE: WARNING: $uritext: Skipping file URI that is not on localhost\n"
-                    if $uri->host ;
-                next;
-            }
-        # schemes other than file require a host
-        } else {
-            if (!defined $uri->host || $uri->host eq "") {
-                warn "$THIS_FILE: WARNING: $uritext: Skipping URI without a host\n"
-                    if $VERBOSE > 0;
-                next;
-            }
-        }
-        if ($uri->path eq "") {
-            warn "$THIS_FILE: WARNING: $uritext: URI not canonical\n"
-                if $VERBOSE > 0;
-            $uri->path("/");
-        }
-        $uri->fragment(undef);
-        # Use its canonical form
-        $uri = $uri->canonical;
-        if (exists $URIS{$uri->as_string}) {
-            warn "$THIS_FILE: WARNING: Skipping duplicated URI $uritext\n"
-                if $VERBOSE > 0;
-            next;
-        }
-        $URIS{$uri->as_string} = $uri;
-        push @STARTS, $uri->as_string;
+        $_ = shift @ARGV;
+        push @STARTS, $_;
     }
     die "$THIS_FILE: Please specify the URL to check\n$SHORTHELP\n"
         if @STARTS == 0;
     
+    # Default values
+    $CONF{"RECURSIVE"} = DEFAULT_RECURSIVE if !exists $CONF{"RECURSIVE"};
+    $CONF{"PARENT"} = DEFAULT_PARENT if !exists $CONF{"PARENT"};
+    $CONF{"NOREMOTE"} = DEFAULT_NOREMOTE if !exists $CONF{"NOREMOTE"};
+    
     return;
 }
 
-# check_links: Check links from an URL
+# check_links: Check links from a URL
 sub check_links($) {
     local ($_, %_);
-    my ($start, $page, $doc);
+    my ($start, $uri);
     $start = $_[0];
     
-    @LOCALS = qw($start);
-    %LFOUND = ($start => 1);
-    $LOCAL_TARGET = get_target $start;
-    @REMOTES = qw();
-    ($TOTAL, $SUCCESS) = (0, 0);
-    $STARTDIR = $URIS{$start}->path;
-    $STARTDIR =~ s/[^\/]+$//;
+    # Try to initialize it
+    return if !defined($uri = new _private::URI($start));
+    # Save our target
+    $LOCAL_TARGET = $uri->target;
     
-    $page = $start;
-    ($page, $doc) = fetch_redir $page;
-    return if !defined $doc;
-    get_links $doc, $page;
-    while (@LOCALS > 0 || @REMOTES > 0) {
-        # Always process locals first
-        if (@LOCALS > 0) {
-            @LOCALS = sort @LOCALS;
-            $page = $LOCALS[0];
-            ($page, $doc) = fetch_redir $page;
-            # Skip the failed request
-            next if !defined $doc;
-            # Skip if non-recursive
-            next if !$RECURSIVE;
-            # Skip if it is excluded
-            next if is_excluded $page;
-            get_links $doc, $page;
-        
-        # Then the remote
-        } else {
-            @REMOTES = sort @REMOTES;
-            $page = $REMOTES[0];
-            fetch_redir $page;
-            # We are not parsing remote documents
-        }
-    }
+    print "\"".$uri->as_string."\"\n" if defined $uri;
     
-    print rep_uri($start) . ": $TOTAL checked, $SUCCESS success\n"
-        if $VERBOSE > 0;
     return;
 }
 
-# fetch_redir: Fetch a document and deal with redirection
-sub fetch_redir($) {
-    local ($_, %_);
-    my ($orig, $redir, $doc, $referer);
-    $orig = $_[0];
-    
-    while (1) {
-        ($doc, $redir) = fetch_noredir $orig;
-        # No more redirection
-        return ($orig, $doc) if !defined $redir;
-        # Redirection target was scheduled
-        return ($orig, undef) if exists $LFOUND{$redir} || exists $RFOUND{$redir};
-        # Record the referer
-        $REFS{$redir} = [] if !exists $REFS{$redir};
-        $referer = [rep_uri $orig];
-        push @$referer, @{${$REFS{$orig}}[0]} if exists $REFS{$orig};
-        push @{$REFS{$redir}}, $referer;
-        # Process the next
-        $orig = $redir;
-    }
+
+# _private::URI: A URI handler
+package _private::URI;
+use 5.006;
+use strict;
+use warnings;
+
+use Cwd qw(cwd);
+use File::Spec qw();
+use URI qw();
+
+use vars qw($CWD);
+BEGIN {
+undef $CWD;
 }
 
-# fetch_noredir: Fetch a document without redirection
-sub fetch_noredir($) {
-    my ($uritext, $uri, $ua, $r, $urirep);
-    $uritext = $_[0];
+# new: Initialize the URI handler
+sub new : method {
+    local ($_, %_);
+    my ($class, $self, $uri, $refuri, $redir, $baseuri, $is_abs);
+    ($class, $uri, $refuri, $redir) = @_;
     
-    # Remove it from the list
-    if (get_target($uritext) eq $LOCAL_TARGET) {
-        shift @LOCALS;
-    } else {
-        shift @REMOTES;
-    }
-    # Set the target URI to report
-    $urirep = rep_uri $uritext;
-    $urirep .= " (Referer: " . join(", ", map join(" -> ", reverse @$_), @{$REFS{$uritext}}) . ")"
-        if exists $REFS{$uritext};
+    # The base URI
+    $refuri = new _private::URI($refuri)
+        if  defined $refuri
+            && (ref $refuri eq "" || ref($refuri) =~ /^URI\b/);
+    $redir = new _private::URI($redir)
+        if  defined $redir
+            && (ref $redir eq "" || ref($redir) =~ /^URI\b/);
+    $baseuri = defined $redir? $redir:
+        defined $refuri? $refuri: $class->new_cwd;
     
-    # Add the counter
-    $TOTAL++;
-    
-    # Skip if this host has returned 503 Service Unavailable previously
-    if (exists $NOREQ_HOSTS{noreq_key $uritext}) {
-        $_ = $urirep;
-        $_ .= " skipped for service unavailable in previous request to "
-                . $NOREQ_HOSTS{noreq_key $uritext}
-             if $VERBOSE > 0;
-        print "$_\n";
-        return (undef, undef);
-    }
-    
-    $uri = $URIS{$uritext};
-    
-    print STDERR "Requesting $urirep... " if $VERBOSE > 2;
-    $ua = get_ua $uritext;
-    # HTTP or HTTPS -- use HTTP::Request for more sophisticated configuration
-    if ($uri->scheme =~ /^https?$/) {
-        my ($request, $w, $sigwarn);
-        $request = new HTTP::Request(GET => $uri->as_string);
-        # Set the referer
-        $request->header("Referer", ${${$REFS{$uritext}}[0]}[0])
-            if exists $REFS{$uritext};
-        # Gracefully deal with robots.txt warnings
-        $sigwarn = $SIG{"__WARN__"};
-        undef $w;
-        local $SIG{"__WARN__"} = sub { $w = $_[0]; };
-        $r = $ua->simple_request($request);
-        $SIG{"__WARN__"} = $sigwarn;
-        if (defined $w) {
-            # Malformed robots.txt warnings
-            if ($w =~ /^RobotRules <[^\n]+>: Unexpected line: /) {
-                # Skip malformed robots.txt warnings on remote sites
-                # We are assumed to have no control on the remote sites
-                if (get_target($uritext) ne $LOCAL_TARGET) {
-                
-                # Skip warnings about Crawl-delay:
-                # As of writing this, WWW::RobotRules 1.33 in libwww-perl 5.805
-                #   does not recognized the Crawl-delay: rule yet.
-                } elsif ($w =~ /^RobotRules <[^\n]+>: Unexpected line: Crawl-delay:/i) {
-                
-                # Warn on malformed lines in our local robots.txt
-                } else {
-                    warn $w;
+    # The start URL
+    undef $is_abs;
+    if (!defined $refuri) {
+        # A scalar URI
+        if (ref $uri eq "") {
+            # URIs that looks like having a scheme
+            if ($uri =~ /^[^a-z][a-z0-9\+\-\.]+:/i) {
+                $uri = new URI($uri);
+            # UNC paths on MS-Windows, OS/2, DOS, NetWare or Cygwin
+            } elsif (   $^O =~ /^(?:MSWin32|os2|dos|NetWare|cygwin)$/
+                        && ($uri =~ /^\/\/([^\/]+)\/([^\/]+.*)$/
+                            || $uri =~ /^\\\\([^\\]+)\\([^\\]+.*)$/)) {
+                $uri =~ s/\\/\//g;
+                $uri = new URI("file:$uri");
+                $is_abs = 0;
+            # Paths on MS-Windows that have a drive letter
+            } elsif ($^O eq "MSWin32" && $uri =~ /^([a-z]:)(.*)$/i) {
+                my ($drive, $path, $dcwdpath);
+                ($drive, $path) = (uc $1, $2);
+                $path =~ s/\\/\//g;
+                # Not absolute
+                if ($path !~ /^\//) {
+                    # No such drive
+                    die "$THIS_FILE: $drive: No such drive\n"
+                        if !defined($_ = Cwd::getdcwd($drive));
+                    /^[a-z]:(.*)$/i;
+                    $dcwdpath = $1;
+                    $dcwdpath =~ s/\\/\//g;
+                    $dcwdpath =~ s/(?<!\/)$/\//;
+                    $path = new URI($path);
+                    $dcwdpath = new URI($dcwdpath);
+                    $path = $path->abs($dcwdpath)->canonical->as_string;
                 }
-            
-            # Other warnings
+                $uri = new URI("file://localhost/$drive$path");
+                $is_abs = 0;
+            # Paths on Cygwin starting with root are always local
+            } elsif ($^O eq "cygwin" && $uri =~ /^[\/]/) {
+                $uri =~ s/\\/\//g;
+                $uri = new URI("file://localhost$uri");
+                $is_abs = 0;
+            # Else - As a native file system path
             } else {
-                warn $w;
+                my (@paths, @dirs, $path);
+                @paths = File::Spec->splitpath($uri);
+                @dirs = File::Spec->splitdir($paths[1]);
+                @dirs = map $_ eq File::Spec->updir? "..":
+                    $_ eq File::Spec->curdir? ".": $_, @dirs;
+                pop @dirs if $dirs[$#dirs] eq "";
+                $path = $paths[0] . join("/", @dirs) . "/" . $paths[2];
+                $uri = new URI($path);
+                $is_abs = 0;
             }
         }
-    
-    } else {
-        $r = $ua->get($uri->as_string);
     }
-    print STDERR "OK\n" if $VERBOSE > 2;
-    
-    # 204 No Content
-    if ($r->code == 204) {
-        $SUCCESS++;
-        return (undef, undef);
-    
-    # 200 OK
-    } elsif ($r->code == 200) {
-        $SUCCESS++;
-        # Only return the body if text/html
-        # Fix the content type of XHTML in file URI
-        if ($uri->scheme eq "file" && $uri->as_string =~ /\.xhtml$/) {
-            $_ = "application/xhtml+xml";
-        # Parse the content type -- keep the last one when multiple
+    # Convert into an URI object if URI is provided as text
+    $uri = new URI($uri) if ref $uri eq "";
+    # Decided if the URI is absolute
+    if (!defined $is_abs) {
+        if (!defined $uri->scheme) {
+            $is_abs = 0;
         } else {
-            @_ = split /,\s*/, $r->header("Content-Type");
-            $_ = $_[$#_];
+            $_ = "_private::URI::" . lc $uri->scheme;
+            $is_abs = $_->is_abs($uri);
         }
-        return ($r->content, undef)
-            if /^text\/html\b/ || /^application\/xhtml\+xml\b/;
-        return (undef, undef);
-    
-    # 3XX Redirect
-    } elsif (grep($r->code == $_, (301, 302, 303, 307)) > 0) {
-        my ($is_full_uri, $ruri, $rtarget);
-        # Redirect without location is an error
-        if (!defined $r->header("Location")) {
-            print STDERR "$urirep " . $r->status_line . ": Redirect without location\n";
-            return (undef, undef);
-        }
-        
-        $ruri = new URI($r->header("Location"));
-        
-        # Deal with non-canonical location
-        $is_full_uri = 1;
-        # Non-absolute location should be warned
-        if (!defined $ruri->scheme) {
-            $is_full_uri = 0;
-            $ruri->scheme($uri->scheme);
-        }
-        # Skip schemes that are not supported
-        return (undef, undef) if !exists $ALLOWED_SCHEMES{$uri->scheme};
-        if (!defined $ruri->host || $ruri->host eq "") {
-            $is_full_uri = 0;
-            $ruri->host($uri->host);
-        }
-        if ($ruri->path eq "") {
-            $is_full_uri = 0;
-            $ruri->path("/");
-        }
-        warn "$THIS_FILE: WARNING: $uritext: " . $r->status_line . ": "
-                . "Location not canonical: " . $r->header("Location") . "\n"
-            if !$is_full_uri && $VERBOSE > 1;
-        $ruri->fragment(undef);
-        # Use its canonical form
-        $ruri = $ruri->canonical;
-        
-        # Save it
-        $URIS{$ruri->as_string} = $ruri if !exists $URIS{$ruri->as_string};
-        
-        # 301 Moved Permanently should be treated as an error, because we need
-        #   to change the reference from now on.
-        if ($r->code == 301) {
-            $_ = $urirep;
-            $_ .= " " . $r->status_line . ": " . $ruri->as_string
-                if $VERBOSE > 0;
-            print "$_\n";
-            return (undef, $ruri->as_string);
-        }
-        
-        $SUCCESS++;
-        # Warn when not quiet
-        print "$urirep " . $r->status_line . ": " . $ruri->as_string . "\n"
-                if $VERBOSE > 1;
-        return (undef, $ruri->as_string);
-    
-    # Bad response that we cannot go on
-    } elsif (grep($r->code == $_, (400, 403, 404, 410, 500)) > 0) {
-        $_ = $urirep;
-        $_ .= " " . $r->status_line if $VERBOSE > 0;
-        print "$_\n";
-        return (undef, undef);
-    
-    # Bad response that we should not keep requesting on a same server
-    } elsif ($r->code == 503) {
-        $_ = $urirep;
-        $_ .= " " . $r->status_line if $VERBOSE > 0;
-        print "$_\n";
-        $NOREQ_HOSTS{noreq_key $uritext} = $uritext;
-        return (undef, undef);
-    
-    # Unable to process
-    } else {
-        # Unable to process
-        print "$urirep " . $r->status_line . ": Unable to process this response\n";
-        return (undef, undef);
     }
     
-    return;
-}
-
-# get_links: Parse the document and get the links inside
-sub get_links($$) {
-    local ($_, %_);
-    my ($html, $base, $parser);
-    ($html, $base) = @_;
-    
-    $parser = new HTML::LinkExtor;
-    $parser->utf8_mode(1) if $] >= 5.008 && $HTML::Parser::VERSION >= 3.40;
-    $parser->parse($html);
-    @_ = qw();
-    foreach my $link ($parser->links) {
-        ($_, %_) = @$link;
-        push @_, values %_;
-    }
-    proc_link_val $_, $base foreach @_;
-    return;
-}
-
-# proc_link_val: Process a found link value
-sub proc_link_val($$) {
-    local ($_, %_);
-    my ($base, $uri);
-    ($_, $base) = @_;
-    
-    $uri = new URI($_);
-    
-    # Make it canonical
-    $uri = $uri->abs($URIS{$base}) if !defined $uri->scheme;
-    # Skip schemes that are not supported
-    if (!exists $ALLOWED_SCHEMES{$uri->scheme}) {
-        $_ = rep_uri $URIS{$base};
-        print STDERR rep_uri($uri) . " (" . rep_uri($URIS{$base}) . "): "
-                . "Skipping unsupported scheme \"" . $uri->scheme . "\"\n"
-            if $VERBOSE > 3;
-        return;
-    }
-    # Skip local file URI referred from remote
-    if ($uri->scheme eq "file" && $URIS{$base}->scheme ne "file") {
-        print STDERR rep_uri($uri) . " (" . rep_uri($URIS{$base}) . "): "
-                . "Skipping file URI referred from remote\n"
-            if $VERBOSE > 3;
-        return;
-    }
-    # Skip file URI that is not local
-    if ($uri->scheme eq "file" && $uri->host ne "localhost" && $uri->host ne "") {
-        print STDERR rep_uri($uri) . " (" . rep_uri($URIS{$base}) . "): "
-                . "Skipping file URI that is not on localhost\n"
-            if $VERBOSE > 3;
-        return;
-    }
-    $uri->host($URIS{$base}->host) if !defined $uri->host || $uri->host eq "";
-    $uri->path("/") if $uri->path eq "";
+    # Make the URI absolute
+    $uri = $uri->abs($baseuri->{"uri"})
+        if  !defined $uri->scheme
+            || $uri->scheme eq $baseuri->{"uri"}->scheme;
+    # Remove the fragment
     $uri->fragment(undef);
     # Use its canonical form
     $uri = $uri->canonical;
     
-    # Save it
-    $URIS{$uri->as_string} = $uri if !exists $URIS{$uri->as_string};
-    $REFS{$uri->as_string} = [] if !exists $REFS{$uri->as_string};
-    push @{$REFS{$uri->as_string}}, [rep_uri $base];
-    
-    # Local
-    if (get_target($uri->as_string) eq $LOCAL_TARGET) {
-        # Skip found URLs
-        return if exists $LFOUND{$uri->as_string};
-        # Skip parent directories
-        return if !$PARENT && $uri->path !~ /^$STARTDIR/;
-        push @LOCALS, $uri->as_string;
-        $LFOUND{$uri->as_string} = 1;
-    
-    # Remote
-    } else {
-        # No remote
-        return if $NOREMOTE;
-        # Skip found URLs
-        return if exists $RFOUND{$uri->as_string};
-        push @REMOTES, $uri->as_string;
-        $RFOUND{$uri->as_string} = 1;
+    # This URI was found before
+    if (exists $URIS{$uri->as_string}) {
+        $self = $URIS{$uri->as_string};
+        # Add this referer
+        push @{$self->{"refs"}}, $refuri
+            if  defined $refuri
+                && grep($_->eq($refuri->{"uri"}), @{$self->{"refs"}}) == 0;
+        return $self;
     }
     
+    # Find the scheme-specific subclass
+    $class = "_private::URI::" . lc $uri->scheme;
+    # Initialize the handler
+    $self = bless {}, $class;
+    $self->{"uri"} = $uri;
+    $self->{"is_abs"} = $is_abs;
+    $self->{"refs"} = [];
+    push @{$self->{"refs"}}, $refuri if defined $refuri;
+    $self->{"checked"} = undef;
+    $self->{"links"} = [];
+    $self->{"redir"} = undef;
+    # Unsupported scheme
+    if ($uri->scheme !~ /^(?:http|https|ftp|gopher|file|mailto)$/i) {
+        warn $self->label . ": Skipping unsupported " . $uri->scheme . " scheme\n";
+        return undef;
+    }
+    return undef if !$self->scheme_init_ok;
+    return $self;
+}
+
+# new_cwd: Initialize the URI handler of the current working directory
+sub new_cwd : method {
+    local ($_, %_);
+    my ($path, @paths, @dirs, $host, $uri);
+    
+    # Already initialized
+    return $CWD if defined $CWD;
+    
+    # Create the URI of the current working directory
+    @paths = File::Spec->splitpath(cwd);
+    # Convert the path to the UNIX format
+    @dirs = File::Spec->splitdir($paths[1]);
+    pop @dirs if $dirs[$#dirs] eq "";
+    push @dirs, $paths[2] if $paths[2] ne "";
+    push @dirs, "" if $dirs[$#dirs] ne "";
+    unshift @dirs, "" if $dirs[0] ne "";
+    $paths[1] = join "/", @dirs;
+    # Deal with the UNC volume name
+    $host = "localhost";
+    if ($^O =~ /^(?:MSWin32|os2|dos|NetWare)$/) {
+        # UNC path
+        if (    $paths[0] =~ /^\/\/([^\/]+)\/([^\/]+)$/
+                || $paths[0] =~ /^\\\\([^\\]+)\\([^\\]+)$/) {
+            $host = $1;
+            $paths[0] = "/$2";
+        }
+    } elsif ($^O eq "cygwin") {
+        # UNC path
+        $host = $1
+            if  $paths[1] =~ s/^\/\/([^\/]+)(\/[^\/]+)/$2/
+                || $paths[1] =~ s/^\\\\([^\\]+)(\\[^\\]+)/$2/;
+    }
+    $path = join "", @paths;
+    $path =~ s/^(?!\/)/\//;
+    
+    $uri = new URI;
+    $uri->scheme("file");
+    $uri->host($host);
+    $uri->path($path);
+    $uri = $uri->canonical;
+    
+    # Initialize the handler
+    $CWD = bless {}, "_private::URI::file";
+    $CWD->{"uri"} = $uri;
+    $CWD->{"refs"} = [];
+    $CWD->{"checked"} = undef;
+    $CWD->{"links"} = [];
+    $CWD->{"redir"} = undef;
+    
+    # This is always OK.  No need to check with scheme_init_ok()
+    return $CWD;
+}
+
+# scheme_init_ok: Try to initialize this scheme and return if it succeed
+#   Default to be OK.  Override this method to add checks.
+sub scheme_init_ok : method { 1; }
+
+# check: Check the URI
+sub check : method {
+    local ($_, %_);
+    my ($self, $uri, $r, $doc, @links);
+    $self = $_[0];
+    # Checked before
+    return @{$self->{"checked"}} if $self->{"checked"};
+    
+    # Request the URI
+    $uri = $self->{"uri"};
+    $r = $self->request;
+    
+    # Only 200 is OK
+    if ($r->code != 200) {
+        # 204 No Content
+        if ($r->code == 204) {
+            $self->{"checked"} = [1, qw()];
+            return @{$self->{"checked"}};
+        
+        # 3XX Redirect
+        } elsif (grep($r->code == $_, (301, 302, 303, 307)) > 0) {
+            my ($is_full_uri, $ruri, $rtarget);
+            # Redirect without location is an error
+            if (!defined $r->header("Location")) {
+                $self->outfail($r->status_line . ": Redirect without location");
+                $self->{"checked"} = [0, qw()];
+                return @{$self->{"checked"}};
+            }
+            
+            $ruri = new URI($r->header("Location"));
+            
+            # Deal with non-canonical location
+            $is_full_uri = 1;
+            # Non-absolute location should be warned
+            if (!defined $ruri->scheme) {
+                $is_full_uri = 0;
+                $ruri->scheme($uri->scheme);
+            }
+            # Skip schemes that are not supported
+            #return (undef, undef) if !exists $ALLOWED_SCHEMES{$uri->scheme};
+            if (!defined $ruri->host || $ruri->host eq "") {
+                $is_full_uri = 0;
+                $ruri->host($uri->host);
+            }
+            if ($ruri->path eq "") {
+                $is_full_uri = 0;
+                $ruri->path("/");
+            }
+            warn "$THIS_FILE: WARNING: " . $self->as_string . ": " . $r->status_line . ": "
+                    . "Location not canonical: " . $r->header("Location") . "\n"
+                if !$is_full_uri && $VERBOSE > 1;
+            $ruri->fragment(undef);
+            # Use its canonical form
+            $ruri = $ruri->canonical;
+            
+            # Save it
+            $URIS{$ruri->as_string} = $ruri if !exists $URIS{$ruri->as_string};
+            
+            # 301 Moved Permanently should be treated as an error, because we need
+            #   to change the reference from now on.
+            if ($r->code == 301) {
+                $self->outfail($r->status_line . ": " . $ruri->as_string);
+                return (undef, $ruri->as_string);
+            }
+            
+            # Warn when not quiet
+            print $self->label . " " . $r->status_line . ": " . $ruri->as_string . "\n"
+                    if $VERBOSE > 1;
+            return (undef, $ruri->as_string);
+        
+        # Bad response that we cannot go on
+        } elsif (grep($r->code == $_, (400, 403, 404, 410, 500)) > 0) {
+            $self->outfail($r->status_line);
+            $self->{"checked"} = [0, qw()];
+            return @{$self->{"checked"}};
+        
+        # Bad response that we should not keep requesting on a same server
+        } elsif ($r->code == 503) {
+            $self->outfail($r->status_line);
+            #$NOREQ_HOSTS{noreq_key $self->as_string} = $self->as_string;
+            $self->{"checked"} = [0, qw()];
+            return @{$self->{"checked"}};
+        
+        # Unable to process
+        } else {
+            # Unable to process
+            $self->outfail($r->status_line . ": Unable to process this response");
+            $self->{"checked"} = [0, qw()];
+            return @{$self->{"checked"}};
+        }
+    }
+    
+    # 200 OK
+    # Only return the body if text/html
+    # Fix the content type of XHTML in file URI
+    if ($uri->scheme eq "file" && $uri->as_string =~ /\.xhtml$/) {
+        $_ = "application/xhtml+xml";
+    # Parse the content type -- keep the last one when multiple
+    } else {
+        @_ = split /,\s*/, $r->header("Content-Type");
+        $_ = $_[$#_];
+    }
+    return ($r->content, undef)
+        if /^text\/html\b/ || /^application\/xhtml\+xml\b/;
+    return (undef, undef);
+    
+    $self->{"checked"} = [1, @links];
+    return @{$self->{"checked"}};
+}
+
+# request: Send a request to the URI and return the response
+#   Default to the simple form using URI
+sub request : method {
+    $UA->get($_[0]->as_string);
+}
+
+# as_string: Print the URI
+sub as_string : method {
+    return exists $_[0]->{"uri"}? $_[0]->{"uri"}->as_string: "";
+}
+
+# label: The label to print when error, usually URI plus referers.
+sub label : method {
+    local ($_, %_);
+    my ($self, @refuris);
+    $self = $_[0];
+    # There is no referer
+    return $self->as_string if @{$self->{"refs"}} == 0;
+    # There are referers
+    @_ = @{$self->{"refs"}};
+    @_ = map join(" => ", @$_), @_;
+    return sprintf "%s (Referer: %s)", $self->as_string,
+        join(", ", @_);
+}
+
+# outfail: Print a failure
+sub outfail : method {
+    local ($_, %_);
+    my ($self, $level, $message);
+    ($self, $level, $message) = @_;
+    print $self->label;
+    # Do not output message when quiet
+    print ": $message" if $VERBOSE > 0;
+    print "\n";
     return;
 }
 
-# is_excluded: If this page is excluded
-sub is_excluded($) {
+# target: The target of the URI
+sub target : method {
     local ($_, %_);
-    my ($page, $path, $excpath, $match);
-    $page = $_[0];
-    
-    foreach (@EXCLUDES) {
-        $path = substr $_, 1;
-        # Directory match
-        if (/\/$/) {
-            $match = ($URIS{$page}->path =~ /^$path/);
-        # File or directory match
+    my ($self, $uri, $target);
+    $self = $_[0];
+    # Obtained before
+    return $self->{"target"} if exists $self->{"target"};
+    $uri = $self->{"uri"};
+    $target = new URI;
+    $target->scheme($uri->scheme);
+    $target->host($uri->host);
+    $target->port($uri->port) if $uri->can("port") && defined $uri->port;
+    return ($self->{"target"} = $target->canonical);
+}
+
+# is_abs: If a given URI is absolute
+#   This is a static method.
+sub is_abs : method {
+    local ($_, %_);
+    $_ = $_[1];
+    return 0
+        unless $_->can("host")
+                && defined $_->host
+                && $_->host ne "";
+    return 1;
+}
+
+
+# _private::URI::http: An HTTP URI handler
+package _private::URI::http;
+use 5.008;
+use strict;
+use warnings;
+use base qw(_private::URI);
+
+use HTTP::Request qw();
+
+use vars qw(%NOREQ_HOSTS);
+BEGIN {
+%NOREQ_HOSTS = qw();
+}
+
+# request: Send a request to the URI and return the response
+sub request : method {
+    local ($_, %_);
+    my ($self, $r, $request, $w, $sigwarn);
+    $self = $_[0];
+    $request = new HTTP::Request(GET => $self->as_string);
+    # Set the referer
+    $request->header("Referer", ${${$self->{"refs"}}[0]}[0]->as_string);
+    # Gracefully deal with robots.txt warnings
+    $sigwarn = $SIG{"__WARN__"};
+    undef $w;
+    local $SIG{"__WARN__"} = sub { $w = $_[0]; };
+    $r = $UA->simple_request($request);
+    $SIG{"__WARN__"} = $sigwarn;
+    if (defined $w) {
+        # Malformed robots.txt warnings
+        if ($w =~ /^RobotRules <[^\n]+>: Unexpected line: /) {
+            # Skip malformed robots.txt warnings on remote sites
+            # We are assumed to have no control on the remote sites
+            if ($self->{"uri"}->host ne $LOCAL_TARGET) {
+            
+            # Skip warnings about Crawl-delay:
+            # As of writing this, WWW::RobotRules 1.33 in libwww-perl 5.805
+            #   does not recognized the Crawl-delay: rule yet.
+            } elsif ($w =~ /^RobotRules <[^\n]+>: Unexpected line: Crawl-delay:/i) {
+            
+            # Warn on malformed lines in our local robots.txt
+            } else {
+                warn $self->label . ": $w";
+            }
+        
+        # Other warnings
         } else {
-            $match = ($URIS{$page}->path =~ /^$path(?![^\/?])/);
+            warn $self->label . ": $w";
         }
-        # minus (-) means "exclude"
-        return /^-/ if $match;
     }
-    
-    return 0;
+    return $r;
 }
 
-# get_ua: Return a user agent for the request
-sub get_ua($) {
-    local ($_, %_);
-    $_ = $_[0];
-    
-    # Get the target of the request
-    $_ = get_target $_;
-    
-    # User agent cached
-    return $UA{$_} if exists $UA{$_};
-    
-    # Create a new user agent
-    $UA{$_} = new LWP::RobotUA(
-        "agent"         => $UASTR,
-        "from"          => (getlogin or getpwuid $> or $> or $THIS_FILE)
-                            . "@" . hostname,
-        "keep_alive"    => 1,
-        "cookie_jar"    => $COOKIE_JAR,
-    );
-    $UA{$_}->delay(0);
-    #$LWP::Debug::current_level{"debug"} = 1;
-    $UA{$_}->default_header("Accept", "application/xhtml+xml,text/html;q=0.9,*/*;q=0.1");
-    return $UA{$_};
+
+# _private::URI::https: An HTTPS URI handler
+package _private::URI::https;
+use 5.008;
+use strict;
+use warnings;
+use base qw(_private::URI::http);
+
+use vars qw($HAS_CRYPT_SSLEAY);
+BEGIN {
+undef $HAS_CRYPT_SSLEAY;
 }
 
-# get_target: Return the target of the request
-sub get_target($) {
+# scheme_init_ok: Try to initialize this scheme and return if it succeed
+sub scheme_init_ok : method {
     local ($_, %_);
-    my ($uritext, $uri, $scheme, $user, $pass, $host, $port);
-    $uritext = $_[0];
-    
-    die sprintf("%s %s", (caller 2)[1,2]) if !defined $uritext;
-    
-    # Target cached
-    return $TARGETS{$uritext} if exists $TARGETS{$uritext};
-    
-    # Construct the target of our request
-    $uri = $URIS{$uritext};
-    $scheme = $uri->scheme;
-    if (!$uri->can("userinfo") || !defined($_ = $uri->userinfo)) {
-        ($user, $pass) = (undef, undef);
-    } elsif ($_ =~ !/^([^:]+):(.+)$/) {
-        ($user, $pass) = (uri_unescape($_), undef);
+    my ($self, $uri);
+    $self = $_[0];
+    $uri = $self->{"uri"};
+    # Try to find Crypt::SSLeay
+    $HAS_CRYPT_SSLEAY = eval "use Crypt::SSLeay qw(); 1;"? 1: 0
+        if !defined $HAS_CRYPT_SSLEAY;
+    if (!$HAS_CRYPT_SSLEAY) {
+        warn $self->label . ": Crypt::SSLeay not found, skipping unsupported https scheme.\n";
+        return undef;
+    }
+    # OK
+    return 1;
+}
+
+
+# _private::URI::ftp: An FTP URI handler
+package _private::URI::ftp;
+use 5.008;
+use strict;
+use warnings;
+use base qw(_private::URI);
+
+
+# _private::URI::gopher: A gopher URI handler
+package _private::URI::gopher;
+use 5.008;
+use strict;
+use warnings;
+use base qw(_private::URI);
+
+
+# _private::URI::file: A file URI handler
+package _private::URI::file;
+use 5.008;
+use strict;
+use warnings;
+use base qw(_private::URI);
+
+use File::Spec qw();
+
+# scheme_init_ok: Try to initialize this scheme and return if it succeed
+sub scheme_init_ok : method {
+    local ($_, %_);
+    my ($self, $uri);
+    $self = $_[0];
+    $uri = $self->{"uri"};
+    # file URI not on localhost is not good
+    if (    defined $uri->host
+            && $uri->host ne ""
+            && $uri->host ne "localhost"
+            && $uri->host ne $self->new_cwd->{"uri"}->host) {
+        warn $self->label . ": Skipping file URI that is not local.\n";
+        return undef;
+    }
+    # OK
+    return 1;
+}
+
+# as_string: Print the URI
+sub as_string : method {
+    local ($_, %_);
+    my ($self, $uri, @paths, @dirs, $path);
+    $self = $_[0];
+    $uri = $self->{"uri"};
+    # Windows, DOS and alike - Return volume or UNC path
+    if ($^O =~ /^(?:MSWin32|os2|dos|NetWare)$/) {
+        # Local path
+        if (    !defined $uri->host
+                || $uri->host eq ""
+                || $uri->host eq "localhost") {
+            @dirs = split /\//, $uri->path;
+            push @dirs, "" if $uri->path =~ /\/$/ && $dirs[$#dirs] ne "";
+            shift @dirs if $dirs[0] eq "";
+            @paths = ("", "", "");
+            $paths[0] = $dirs[0];
+            $dirs[0] = "";
+            $paths[2] = pop @dirs;
+            $paths[1] = File::Spec->catdir(@dirs);
+            $paths[1] .= "\\" if $uri->path =~ /\/$/ && $paths[1] !~ /\/$/;
+            return File::Spec->catpath(@paths);
+        # UNC path
+        } else {
+            @dirs = split /\//, $uri->path;
+            push @dirs, "" if $uri->path =~ /\/$/ && $dirs[$#dirs] ne "";
+            shift @dirs if $dirs[0] eq "";
+            @paths = ("", "", "");
+            $paths[0] = sprintf "\\\\%s\\%s", $uri->host, $dirs[0];
+            $dirs[0] = "";
+            $paths[2] = pop @dirs;
+            $paths[1] = File::Spec->catdir(@dirs);
+            $paths[1] .= "\\" if $uri->path =~ /\/$/ && $paths[1] !~ /\/$/;
+            return File::Spec->catpath(@paths);
+        }
+    # Cygwin - Return UNC path with forward slashes
+    } elsif ($^O eq "cygwin") {
+        # Local path
+        if (    !defined $uri->host
+                || $uri->host eq ""
+                || $uri->host eq "localhost") {
+            return $uri->path;
+        # UNC path
+        } else {
+            @dirs = split /\//, $uri->path;
+            push @dirs, "" if $uri->path =~ /\/$/ && $dirs[$#dirs] ne "";
+            shift @dirs if $dirs[0] eq "";
+            @paths = ("", "", "");
+            $paths[0] = sprintf "//%s/%s", $uri->host, $dirs[0];
+            $dirs[0] = "";
+            $paths[2] = $dirs[$#dirs];
+            $dirs[$#dirs] = "";
+            $paths[1] = join "/", @dirs;
+            return join "", @paths;
+        }
+    # Others - Return with local file system format
     } else {
-        ($user, $pass) = (uri_unescape($1), uri_unescape($2));
+        @dirs = split /\//, $uri->path;
+        
+        return $uri->path;
     }
-    $host = $uri->host;
-    undef $port;
-    $port = $uri->port if $uri->can("port");
-    $_ = $uri->can("default_port") && defined $uri->default_port?
-        $uri->default_port: undef;
-    undef $port if defined $_ && $_ eq $port;
-    
-    # Construct the target URI
-    $uri = new URI("");
-    $uri->scheme($scheme);
-    undef $_;
-    if (defined $user) {
-        $_ = uri_escape($user);
-        $_ .= ":" . uri_escape($pass) if defined $pass;
-        $uri->userinfo($_);
-    }
-    $uri->host($host);
-    $uri->port($port) if defined $port;
-    
-    # Cache it
-    $TARGETS{$uritext} = $uri->canonical;
-    return $TARGETS{$uritext};
 }
 
-# noreq_key: Obtain the key to check if we should keep requesting on this server
-sub noreq_key($) {
-    local ($_, %_);
-    my $uri;
-    $_ = $_[0];
-    
-    $uri = new URI("");
-    $uri->scheme($URIS{$_}->scheme);
-    $uri->host(inet_aton($URIS{$_}->host));
-    $uri->port($URIS{$_}->port) if $URIS{$_}->can("port");
-    
-    return $uri->canonical->as_string;
+# is_abs: If a given URI is absolute
+#   This is a static method.
+#   file URI are always absolute when scheme is determined
+sub is_abs : method { 1; }
+
+
+# _private::URI::mailto: A mailto URI handler
+package _private::URI::mailto;
+use 5.008;
+use strict;
+use warnings;
+use base qw(_private::URI);
+
+use vars qw($HAS_NET_DNS);
+BEGIN {
+undef $HAS_NET_DNS;
 }
 
-# rep_uri: Report an URI, a wrapper to URI->as_string that clean the file scheme
-sub rep_uri($) {
+# scheme_init_ok: Try to initialize this scheme and return if it succeed
+sub scheme_init_ok : method {
     local ($_, %_);
-    $_ = $_[0];
-    $_ = $_->as_string if ref($_) =~ /^URI\b/;
-    return $_ unless s/^file:\/\///;
-    # Have something simular to a volumn ID, for MSWin32
-    s/^\/([a-z]:)/$1/i;
-    return File::Spec->catdir(split /\//, $_);
+    my ($self, $uri);
+    $self = $_[0];
+    $uri = $self->{"uri"};
+    # Try to find Crypt::SSLeay
+    $HAS_NET_DNS = eval "use Net::DNS qw(); 1;"? 1: 0
+        if !defined $HAS_NET_DNS;
+    if (!$HAS_NET_DNS) {
+        warn $self->label . ": Net::DNS not found, skipping unsupported mailto scheme.\n";
+        return undef;
+    }
+    # OK
+    return 1;
 }
+
+# target: The target of the URI
+sub target : method {
+    local ($_, %_);
+    my ($self, $uri, $target);
+    $self = $_[0];
+    # Obtained before
+    return $self->{"target"} if exists $self->{"target"};
+    $uri = $self->{"uri"};
+    $target = new URI;
+    $target->scheme($uri->scheme);
+    $target->to($uri->to);
+    return ($self->{"target"} = $target->canonical);
+}
+
+# is_abs: If a given URI is absolute
+#   This is a static method.
+#   There is no relative mailto URI.
+sub is_abs : method { 1; }
+
 
 __END__
 
@@ -669,8 +811,8 @@ chklinks - A non-threaded Perl link checker
 
 =head1 DESCRIPTION
 
-F<chklinks> is a non-threaded Perl link checker.  It helps finding
-broken links on your website.
+F<chklinks> is a Perl link checker.  It helps finding broken links
+on your website.
 
 F<chklinks> differs from C<linkchecker> in that F<chklinks> is non-
 threaded.  It does not raises many simultaneously connections for its

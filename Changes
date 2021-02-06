@@ -34,11 +34,134 @@ chklinks change log
 	 1. INSTALL and chklinks.en.html: Fixed typo: "instalation" to
 	    "installation".
 
-2007-12-05	version 3.09
-	MS-Windows fix.
+2007-12-11
+	 1. chklinks: Fixed the new() method of the _private::URI class to
+	    initialize the URI if not a start URI and is provided as text.
+	 2. chklinks: Fixed the new() method of the _private::URI class to
+	    check $refuri with "ref($refuri)" instead of "ref $refuri", to
+	    correct the calculating precedence.
+	 3. chklinks: Fixed the new() method of the _private::URI class to
+	    received a third argument $redir the redirection URI, and set
+	    the base URI to first $redir, then second $refuri, and finally
+	    $self->new_cwd.  Removed $norefuri as it is not used anymore.
+	 4. chklinks: Added the outfail() method to the _private::URI class
+	    to handle the failure output.  Fixed the check() method to use
+	    outfail() method.
+	 5. chklinks: Fixed the new() method of the _private::URI class to
+	    replace the local file system updir and curdir with "." and
+	    "..", according to the URI format.
+	 6. chklinks: Fixed the as_string() method of the _private::URI::file
+	    class so that it return only the file system path on normal
+	    systems.
+	 7. chklinks: Fixed the as_string() method of the _private::URI::file
+	    class to add the trailing empty part when path is a directory.
+	 8. chklinks: Added the static is_abs() method to the _private::URI,
+	    _private::URI::file and _private::URI::mailto classes to check
+	    if a given URI is absolute.
+
+2007-12-08
+	 1. chklinks: Fixed indefinite articles in the comments, "an mailto
+	    URI" as "a mailto URI", "an URL" as "a URL", "an URI" as "a URI".
+
+2007-12-07
+	 1. chklinks: Added the as_string() method to the _private::URI class
+	    to return the as_string() method of the URI.  This is a shortcut.
+	    Updated the new(), label() and request() method of the
+	    _private::URI class to use $self->as_string.
+	 2. chklinks: Updated the new() method of the _private::URI class
+	    so that only one referring URI is specified.  Redirections should
+	    be handled with the "redir" array reference attribute (maybe).
+	 3. chklinks: Code clean-up.  Removed all the version 3 subroutines
+	    fetch_noredir(), get_links(), proc_link_val(), is_excluded(),
+	    get_ua(), get_target(), noreq_key() and rep_uri() from the main
+	    package.  Removed all the version 3 global variables from the
+	    main package.  Use the %CONF configuration variable in the
+	    parse_args() subroutine instead of the several old global
+	    variables.  Clean-up the parse_args() subroutine on the URI
+	    initialization, which I shall review them and see if I should
+	    return them in the future.  Added the DEFAULT_RECURSIVE,
+	    DEFAULT_PARENT and DEFAULT_NOREMOTE constants.  Set the default
+	    value in the parse_args() subroutine.  Wrote a new check_links()
+	    subroutine that only initialize and print out the _private::URI
+	    objects, for debugging purpose.
+	 4. chklinks: Fixed the check_links() subroutine so that it returns
+	    when URI initialization fails.
+	 5. chklinks: Added the new_cwd() method to return the current
+	    working directory as a file URI, and moved the original current
+	    working directory URI initialization from the new() method to the
+	    new_cwd() method.  Rewrote the current working directory URI
+	    initialization so that it works with UNC paths, and that it
+	    returns a _private::URI object instead of a URI object.  Revised
+	    the new() method so that it deal with a _private::URI object
+	    referer instead of a URI object referer.
+	 6. chklinks: Fixed the scheme_init_ok() method of the
+	    _private::URI::file class to allow UNC paths when the current
+	    working directory is also on a UNC share.
+	 7. chklinks: Added the as_string() method to the _private::URI::file
+	    class so that it deal with UNC paths and return the paths in the
+	    native operating system format.
+	 8. chklinks: Fixed the new() method of the _private::URI class so
+	    that it only accepts one referer from the argument, saves "refs"
+	    as an array of referers rather than an array of arrays of
+	    referers.  Series of referers should be obtained from the "redir"
+	    attribute, but not from series of referers.
+	 9. chklinks: Fixed the new() method of the _private::URI class so
+	    that it works with start paths in the native operating system
+	    format.
+	10. chklinks: Moved the request status checking code from the
+	    fetch_noredir() subroutine in version 3 to the check() method
+	    of the _private::URI class.
+
+* From now on, Change log on the version 3 branch, if any, will have a "(v3)"
+  tag in the future.  Change log without "(v3)" tags means change log on the
+  version 4 branch.
+
+2007-12-06 (v4)
+	 1. chklinks: Moved the $UA variable from the _private::URL class to
+	    the main package, and moved its scope from "use vars" to "our",
+	    so that it is accessible to the _private::URL class and all its
+	    subclasses.
+	 2. chklinks: Renamed the _private::URL* classes ad _private::URI*.
+	 3. chklinks: Added the target() method to the _private::URI and
+	    _private::URI::mailto classes to return the requesting target
+	    of this URI.
+	 4. chklinks: Added the label() method to the _private::URI class to
+	    return the label in the result report.
+
+2007-12-06	version 3.09
+	MS-Windows fix.  This may be the last release of version 3.
 	 1. chklinks: Fixed the "from" address of the user agent to use
 	    getlogin() and then getpwuid(), in order to work on systems
 	    that only have getlogin() but not getpwuid(), like MS-Windows.
+
+2007-12-05 (v4)
+	 Forked the version 4 branch.  The logic of the current chklinks is
+	 too hard to read, understand and extend.  I'm planning to rewrite
+	 everything, with object-oriented code that handles different scheme
+	 gracefully.  This can help handling the non-standard URL schemes
+	 nicely without obscure conditional branches and loops.  Then I can
+	 add checks on mailto URLs, put better handling on file URIs, and
+	 maybe extending to other URL schemes in the future.
+	 1. chklinks: Added "package main;" declaration to the main
+	    package.  Added the _private::URL class to handle URLs, and the
+	    _private::URL::http, _private::URL::ftp, _private::URL::gopher,
+	    _private::URL::file, _private::URL::mailto classes as subclasses
+	    of _private::URL to handle URLs of different schemes, and the
+	    _private::URL::https class as the subclass of
+	    _private::URL::http to handle the HTTPS scheme.  Added the new(),
+	    scheme_init_ok(), check(), request() methods to the
+	    _private::URL class.  Added the request() method to the 
+	    _private::URL::http class.  Added the scheme_init_ok() method to
+	    the _private::URL::https, _private::URL::file and
+	    _private::URL::mailto classes.
+	 2. chklinks: Moved the $THIS_FILE, $VERSION, $VERBOSE, %URIS
+	    and $LOCAL_TARGET variables from "use vars" to "our" so that they
+	    are available in the scope of the whole script.  Added the %CONF,
+	    $UA variables to the main package.
+	 3. chklinks: Added the $UA variables to the _private::URL class.  We
+	    in fact does not need many $UA user-agent objects.
+
+_private::URL::https, 
 
 2007-12-05	version 3.08
 	Documentation fixes.
@@ -130,7 +253,7 @@ chklinks change log
 	    and ftp://ftp.domain.invalid/.
 	 7. t/01-basic.t: Added test on http://www.domain.invalid/ and
 	    ftp://ftp.domain.invalid/.
-	 8. t/htdocs/dir01/start.html: Changed to UTF-8, and added an
+	 8. t/htdocs/dir01/start.html: Changed to UTF-8, and added a
 	    UTF-8 Chinese paragraph in order to test UTF-8 mode.
 
 2007-06-06	version 3.04
