@@ -9,7 +9,7 @@ my $build = Module::Build->new(
     dist_version_from	=> "chklinks",
     dist_abstract	=> "A non-threaded Perl link checker",
     dist_author		=> "imacat <imacat\@mail.imacat.idv.tw>",
-    license		=> "gpl",
+    license		=> "apache_2_0",
     sign		=> 1,
     
     script_files        => [ "chklinks" ],

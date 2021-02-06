@@ -6,7 +6,7 @@ use warnings;
 use ExtUtils::MakeMaker;
 
 # Optional prerequisite modules
-use vars qw(%OPT_PREREQ);
+our (%OPT_PREREQ);
 %OPT_PREREQ = (
     "Crypt::SSLeay"	=> 0,
 );
@@ -26,7 +26,7 @@ WriteMakefile(
     VERSION_FROM	=> "chklinks",
     ABSTRACT		=> "A non-threaded Perl link checker",
     AUTHOR		=> "imacat <imacat\@mail.imacat.idv.tw>",
-    LICENSE		=> "gpl",
+    LICENSE		=> "apache_2_0",
     PREREQ_PM		=> {
         "URI"			=> 0,
         "LWP::RobotUA"		=> 0,

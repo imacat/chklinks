@@ -1,7 +1,21 @@
 chklinks change log
 
+2020-02-06
+	 1. Replaced the messy GNU-styled, multi-lingual documents with a
+	    single Markdown README.md.
+	 2. Added the GitHub repository to the document, and removed the
+	    SourceForge website, my web page, and the SourceForge mailing
+	    list from the document.
+	 3. Removed the document license, and my PGP key from the package.
+	    Removed the signature file from the repository.
+	 4. Changed the license from GPLv3 to APLv2.
+	 5. Various fixes to avoid JetBrains IDE problem detection.
+
+2020-02-01
+	 chklinks is hosted on GitHub now.
+
 2008-11-18
-	 1. INSTALL: Fixed the grammer on installation with the CPAN or
+	 1. INSTALL: Fixed the grammar on installation with the CPAN or
 	    CPANPLUS shell, changed "install with the CPAN shell using"
 	    and "install with the CPANPLUS shell using" to "install it
 	    with the CPAN shell by running" and "install it with the
@@ -23,10 +37,10 @@ chklinks change log
 	 1. INSTALL: Updated information on required and optional Perl
 	    modules, to describe different installation commands for
 	    different operating systems.
-	 2. INSTALL: Fixed the grammer on the notes that required modules
+	 2. INSTALL: Fixed the grammar on the notes that required modules
 	    are automatically installed if install from the CPAN or
 	    CPANPLUS shell.
-	 2. chklinks.en.html: Fixed the grammer of the required modules,
+	 2. chklinks.en.html: Fixed the grammar of the required modules,
 	    changed "is part of the xxx package" to "is contained in the
 	    xxx distribution".
 
@@ -43,8 +57,8 @@ chklinks change log
 2007-12-05	version 3.08
 	Documentation fixes.
 	 1. README.zh-*, chklinks.zh-*.html: Fixed the description
-	    "¬O¥Î Perl ¼gªº³æ°õ¦æºü³sµ²ÀË¬dµ{¦¡" to "¬O³æ°õ¦æºüªº Perl ³sµ²
-	    ÀË¬dµ{¦¡", according to the existing short description in
+	    "æ˜¯ç”¨ Perl å¯«çš„å–®åŸ·è¡Œç·’é€£çµæª¢æŸ¥ç¨‹å¼" to "æ˜¯å–®åŸ·è¡Œç·’çš„ Perl é€£çµ
+	    æª¢æŸ¥ç¨‹å¼", according to the existing short description in
 	    README.zh-tw.  I was out of my mind to miss this and translate
 	    it again.
 	 2. chklinks.zh-tw.html, chklinks.zh-cn.html: Removed the old
@@ -248,7 +262,7 @@ chklinks change log
 	 8. FDL added.
 
 2003-05-25	version 2.01
-	 1. An installer, accessary files and a POD document are added.
+	 1. An installer, accessory files and a POD document are added.
 
 2003-05-25	version 2.0.0
 	 1. First public release uploaded onto SourceForge.

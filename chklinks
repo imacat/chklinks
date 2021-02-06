@@ -1,22 +1,21 @@
 #! /usr/bin/perl -w
 # chklinks: A non-threaded Perl link checker
 
-# Copyright (c) 2003-2007 imacat.
-# 
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-# 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# Copyright (c) 2003-2021 imacat.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-# First written: 2003-04-12
+# First written: 2003/4/12
 
 use 5.006;
 use strict;
@@ -38,43 +37,43 @@ use URI::Escape qw(uri_escape uri_unescape);
 sub main();
 sub parse_args();
 sub check_links($);
-sub fetch_redir($);
-sub fetch_noredir($);
+sub fetch_redirect($);
+sub fetch_no_redirect($);
 sub get_links($$);
 sub proc_link_val($$);
 sub is_excluded($);
 sub get_ua($);
 sub get_target($);
-sub noreq_key($);
+sub no_req_key($);
 sub rep_uri($);
 
-use vars qw($THIS_FILE $VERSION $VERBOSE);
+our ($THIS_FILE, $VERSION, $VERBOSE);
 $THIS_FILE = basename($0);
 $VERSION = "3.09";
 $VERBOSE = 1;
 
-use vars qw(@STARTS $RECURSIVE $PARENT $NOREMOTE @EXCLUDES);
-use vars qw($UASTR %UA %TARGETS %URIS %REFS $COOKIE_JAR);
-use vars qw($LOCAL_TARGET @LOCALS %LFOUND $STARTDIR @REMOTES %RFOUND);
-use vars qw($TOTAL $SUCCESS %NOREQ_HOSTS %ALLOWED_SCHEMES);
-$UASTR = "$THIS_FILE-robot/$VERSION (using " . (LWP::RobotUA->can("_agent")?
+our (@STARTS, $RECURSIVE, $PARENT, $IS_LOCAL, @EXCLUDES);
+our ($UA_STR, %UA, %TARGETS, %URIS, %REFS, $COOKIE_JAR);
+our ($LOCAL_TARGET, @LOCALS, %LOCAL_FOUND, $START_DIR, @REMOTES, %REMOTE_FOUND);
+our ($TOTAL, $SUCCESS, %NO_REQ_HOSTS, %ALLOWED_SCHEMES);
+$UA_STR = "$THIS_FILE-robot/$VERSION (using " . (LWP::RobotUA->can("_agent")?
     LWP::RobotUA->_agent: "libwww-perl/" . $LWP::VERSION) . ")";
 %UA = qw();
 %TARGETS = qw();
 %URIS = qw();
 %REFS = qw();
-$COOKIE_JAR = new HTTP::Cookies;
-%NOREQ_HOSTS = qw();
+$COOKIE_JAR = HTTP::Cookies->new;
+%NO_REQ_HOSTS = qw();
 $RECURSIVE = 1;
 $PARENT = 0;
-$NOREMOTE = 0;
+$IS_LOCAL = 0;
 @EXCLUDES = qw();
 %ALLOWED_SCHEMES = map { $_ => 1 } qw(http https ftp file gopher);
 
-use vars qw($VERMSG $SHORTHELP $HELPMSG);
-$VERMSG = "$THIS_FILE v$VERSION by imacat <imacat\@mail.imacat.idv.tw>";
-$SHORTHELP = "Try `$THIS_FILE --help' for more information.";
-$HELPMSG = << "EOT";
+our ($VER_MSG, $SHORT_HELP, $HELP_MSG);
+$VER_MSG = "$THIS_FILE v$VERSION by imacat <imacat\@mail.imacat.idv.tw>";
+$SHORT_HELP = "Try `$THIS_FILE --help' for more information.";
+$HELP_MSG = << "EOT";
 Usage: $THIS_FILE [options] url1 [url2 [url3 ...]]
 Check links on the specific website.
 
@@ -102,7 +101,7 @@ EOT
 main;
 exit 0;
 
-# main: Main program
+# Main program
 sub main() {
     local ($_, %_);
     
@@ -117,7 +116,7 @@ sub main() {
     return;
 }
 
-# parse_args: Parse the arguments
+# Parse the arguments
 sub parse_args() {
     local ($_, %_);
     
@@ -129,16 +128,16 @@ sub parse_args() {
                     "recursive|r"=>sub { $RECURSIVE = 1; },
                     "below|b"=>sub { $PARENT = 0; },
                     "parent|p"=>sub { $PARENT = 1; },
-                    "local|l"=>sub { $NOREMOTE = 1; },
-                    "span|s"=>sub { $NOREMOTE = 0; },
+                    "local|l"=>sub { $IS_LOCAL = 1; },
+                    "span|s"=>sub { $IS_LOCAL = 0; },
                     "exclude|e=s"=>sub { unshift @EXCLUDES, "-" . $_[1]; },
                     "include|i=s"=>sub { unshift @EXCLUDES, "+" . $_[1]; },
                     "debug|d+"=>\$VERBOSE,
                     "quiet|q"=>sub { $VERBOSE-- if $VERBOSE > 0; },
-                    "help|h"=>sub { print $HELPMSG; exit 0; },
-                    "version|v"=>sub { print "$VERMSG\n"; exit 0; });
+                    "help|h"=>sub { print $HELP_MSG; exit 0; },
+                    "version|v"=>sub { print "$VER_MSG\n"; exit 0; });
     };
-    die "$THIS_FILE: $@$SHORTHELP\n" if $@ ne "";
+    die "$THIS_FILE: $@$SHORT_HELP\n" if $@ ne "";
     
     # Show progress
     $| = 1 if $VERBOSE > 2;
@@ -147,10 +146,10 @@ sub parse_args() {
     # Arguments are URLs
     @STARTS = qw();
     while (@ARGV > 0) {
-        my ($uri, $uritext);
-        $uritext = shift @ARGV;
-        $uri = new URI($uritext);
-        # Single letter scheme is assumed to be a volumn label
+        my ($uri, $address);
+        $address = shift @ARGV;
+        $uri = URI->new($address);
+        # Single letter scheme is assumed to be a volume label
         # This is for MSWin32
         $uri->scheme(undef) if defined $uri->scheme && $uri->scheme =~ /^[a-z]$/i;
         # URI without a scheme is assumed to be a local file
@@ -161,19 +160,19 @@ sub parse_args() {
                 $base = getcwd;
                 $base =~ s/\/$//;
                 $base =~ s/^\///;
-                $base = new URI("file://localhost/$base/");
-                $uri = new URI(join("/", File::Spec->splitdir($uritext)));
+                $base = URI->new("file://localhost/$base/");
+                $uri = URI->new(join("/", File::Spec->splitdir($address)));
                 $uri = $uri->abs($base);
             # Systems without symbolic links -- we assume rel2abs() is trustworthy.
             # Like MSWin32
             } else {
-                $uri = new URI("file://localhost/" . join("/", File::Spec->splitdir(File::Spec->rel2abs($uritext))));
+                $uri = URI->new("file://localhost/" . join("/", File::Spec->splitdir(File::Spec->rel2abs($address))));
                 $uri->scheme("file");
                 $uri->host("localhost");
             }
         }
         if (!exists $ALLOWED_SCHEMES{$uri->scheme}) {
-            warn "$THIS_FILE: WARNING: $uritext: Skipping URI with unsupported scheme " . $uri->scheme . "\n"
+            warn "$THIS_FILE: WARNING: $address: Skipping URI with unsupported scheme " . $uri->scheme . "\n"
                 if $VERBOSE > 0;
             next;
         }
@@ -181,20 +180,20 @@ sub parse_args() {
         if ($uri->scheme eq "file") {
             $uri->host("localhost") if !defined $uri->host || $uri->host eq "";
             if ($uri->host ne "localhost") {
-                warn "$THIS_FILE: WARNING: $uritext: Skipping file URI that is not on localhost\n"
+                warn "$THIS_FILE: WARNING: $address: Skipping file URI that is not on localhost\n"
                     if $uri->host ;
                 next;
             }
         # schemes other than file require a host
         } else {
             if (!defined $uri->host || $uri->host eq "") {
-                warn "$THIS_FILE: WARNING: $uritext: Skipping URI without a host\n"
+                warn "$THIS_FILE: WARNING: $address: Skipping URI without a host\n"
                     if $VERBOSE > 0;
                 next;
             }
         }
         if ($uri->path eq "") {
-            warn "$THIS_FILE: WARNING: $uritext: URI not canonical\n"
+            warn "$THIS_FILE: WARNING: $address: URI not canonical\n"
                 if $VERBOSE > 0;
             $uri->path("/");
         }
@@ -202,35 +201,35 @@ sub parse_args() {
         # Use its canonical form
         $uri = $uri->canonical;
         if (exists $URIS{$uri->as_string}) {
-            warn "$THIS_FILE: WARNING: Skipping duplicated URI $uritext\n"
+            warn "$THIS_FILE: WARNING: Skipping duplicated URI $address\n"
                 if $VERBOSE > 0;
             next;
         }
         $URIS{$uri->as_string} = $uri;
         push @STARTS, $uri->as_string;
     }
-    die "$THIS_FILE: Please specify the URL to check\n$SHORTHELP\n"
+    die "$THIS_FILE: Please specify the URL to check\n$SHORT_HELP\n"
         if @STARTS == 0;
     
     return;
 }
 
-# check_links: Check links from an URL
+# Check links from an URL
 sub check_links($) {
     local ($_, %_);
     my ($start, $page, $doc);
     $start = $_[0];
     
     @LOCALS = qw($start);
-    %LFOUND = ($start => 1);
+    %LOCAL_FOUND = ($start => 1);
     $LOCAL_TARGET = get_target $start;
     @REMOTES = qw();
     ($TOTAL, $SUCCESS) = (0, 0);
-    $STARTDIR = $URIS{$start}->path;
-    $STARTDIR =~ s/[^\/]+$//;
+    $START_DIR = $URIS{$start}->path;
+    $START_DIR =~ s/[^\/]+$//;
     
     $page = $start;
-    ($page, $doc) = fetch_redir $page;
+    ($page, $doc) = fetch_redirect $page;
     return if !defined $doc;
     get_links $doc, $page;
     while (@LOCALS > 0 || @REMOTES > 0) {
@@ -238,7 +237,7 @@ sub check_links($) {
         if (@LOCALS > 0) {
             @LOCALS = sort @LOCALS;
             $page = $LOCALS[0];
-            ($page, $doc) = fetch_redir $page;
+            ($page, $doc) = fetch_redirect $page;
             # Skip the failed request
             next if !defined $doc;
             # Skip if non-recursive
@@ -251,7 +250,7 @@ sub check_links($) {
         } else {
             @REMOTES = sort @REMOTES;
             $page = $REMOTES[0];
-            fetch_redir $page;
+            fetch_redirect $page;
             # We are not parsing remote documents
         }
     }
@@ -261,68 +260,68 @@ sub check_links($) {
     return;
 }
 
-# fetch_redir: Fetch a document and deal with redirection
-sub fetch_redir($) {
+# Fetch a document and deal with redirection
+sub fetch_redirect($) {
     local ($_, %_);
-    my ($orig, $redir, $doc, $referer);
+    my ($orig, $redirect, $doc, $referer);
     $orig = $_[0];
     
     while (1) {
-        ($doc, $redir) = fetch_noredir $orig;
+        ($doc, $redirect) = fetch_no_redirect $orig;
         # No more redirection
-        return ($orig, $doc) if !defined $redir;
+        return ($orig, $doc) if !defined $redirect;
         # Redirection target was scheduled
-        return ($orig, undef) if exists $LFOUND{$redir} || exists $RFOUND{$redir};
+        return ($orig, undef) if exists $LOCAL_FOUND{$redirect} || exists $REMOTE_FOUND{$redirect};
         # Record the referer
-        $REFS{$redir} = [] if !exists $REFS{$redir};
+        $REFS{$redirect} = [] if !exists $REFS{$redirect};
         $referer = [rep_uri $orig];
         push @$referer, @{${$REFS{$orig}}[0]} if exists $REFS{$orig};
-        push @{$REFS{$redir}}, $referer;
+        push @{$REFS{$redirect}}, $referer;
         # Process the next
-        $orig = $redir;
+        $orig = $redirect;
     }
 }
 
-# fetch_noredir: Fetch a document without redirection
-sub fetch_noredir($) {
-    my ($uritext, $uri, $ua, $r, $urirep);
-    $uritext = $_[0];
+# Fetch a document without redirection
+sub fetch_no_redirect($) {
+    my ($address, $uri, $ua, $r, $addr_report);
+    $address = $_[0];
     
     # Remove it from the list
-    if (get_target($uritext) eq $LOCAL_TARGET) {
+    if (get_target($address) eq $LOCAL_TARGET) {
         shift @LOCALS;
     } else {
         shift @REMOTES;
     }
     # Set the target URI to report
-    $urirep = rep_uri $uritext;
-    $urirep .= " (Referer: " . join(", ", map join(" -> ", reverse @$_), @{$REFS{$uritext}}) . ")"
-        if exists $REFS{$uritext};
+    $addr_report = rep_uri $address;
+    $addr_report .= " (Referer: " . join(", ", map join(" -> ", reverse @$_), @{$REFS{$address}}) . ")"
+        if exists $REFS{$address};
     
     # Add the counter
     $TOTAL++;
     
     # Skip if this host has returned 503 Service Unavailable previously
-    if (exists $NOREQ_HOSTS{noreq_key $uritext}) {
-        $_ = $urirep;
+    if (exists $NO_REQ_HOSTS{no_req_key $address}) {
+        $_ = $addr_report;
         $_ .= " skipped for service unavailable in previous request to "
-                . $NOREQ_HOSTS{noreq_key $uritext}
+                . $NO_REQ_HOSTS{no_req_key $address}
              if $VERBOSE > 0;
         print "$_\n";
         return (undef, undef);
     }
     
-    $uri = $URIS{$uritext};
+    $uri = $URIS{$address};
     
-    print STDERR "Requesting $urirep... " if $VERBOSE > 2;
-    $ua = get_ua $uritext;
+    print STDERR "Requesting $addr_report... " if $VERBOSE > 2;
+    $ua = get_ua $address;
     # HTTP or HTTPS -- use HTTP::Request for more sophisticated configuration
     if ($uri->scheme =~ /^https?$/) {
         my ($request, $w, $sigwarn);
-        $request = new HTTP::Request(GET => $uri->as_string);
+        $request = HTTP::Request->new(GET => $uri->as_string);
         # Set the referer
-        $request->header("Referer", ${${$REFS{$uritext}}[0]}[0])
-            if exists $REFS{$uritext};
+        $request->header("Referer", ${${$REFS{$address}}[0]}[0])
+            if exists $REFS{$address};
         # Gracefully deal with robots.txt warnings
         $sigwarn = $SIG{"__WARN__"};
         undef $w;
@@ -334,7 +333,7 @@ sub fetch_noredir($) {
             if ($w =~ /^RobotRules <[^\n]+>: Unexpected line: /) {
                 # Skip malformed robots.txt warnings on remote sites
                 # We are assumed to have no control on the remote sites
-                if (get_target($uritext) ne $LOCAL_TARGET) {
+                if (get_target($address) ne $LOCAL_TARGET) {
                 
                 # Skip warnings about Crawl-delay:
                 # As of writing this, WWW::RobotRules 1.33 in libwww-perl 5.805
@@ -380,90 +379,88 @@ sub fetch_noredir($) {
     
     # 3XX Redirect
     } elsif (grep($r->code == $_, (301, 302, 303, 307)) > 0) {
-        my ($is_full_uri, $ruri, $rtarget);
+        my ($is_full_uri, $redirect_uri);
         # Redirect without location is an error
         if (!defined $r->header("Location")) {
-            print STDERR "$urirep " . $r->status_line . ": Redirect without location\n";
+            print STDERR "$addr_report " . $r->status_line . ": Redirect without location\n";
             return (undef, undef);
         }
         
-        $ruri = new URI($r->header("Location"));
+        $redirect_uri = URI->new($r->header("Location"));
         
         # Deal with non-canonical location
         $is_full_uri = 1;
         # Non-absolute location should be warned
-        if (!defined $ruri->scheme) {
+        if (!defined $redirect_uri->scheme) {
             $is_full_uri = 0;
-            $ruri->scheme($uri->scheme);
+            $redirect_uri->scheme($uri->scheme);
         }
         # Skip schemes that are not supported
         return (undef, undef) if !exists $ALLOWED_SCHEMES{$uri->scheme};
-        if (!defined $ruri->host || $ruri->host eq "") {
+        if (!defined $redirect_uri->host || $redirect_uri->host eq "") {
             $is_full_uri = 0;
-            $ruri->host($uri->host);
+            $redirect_uri->host($uri->host);
         }
-        if ($ruri->path eq "") {
+        if ($redirect_uri->path eq "") {
             $is_full_uri = 0;
-            $ruri->path("/");
+            $redirect_uri->path("/");
         }
-        warn "$THIS_FILE: WARNING: $uritext: " . $r->status_line . ": "
+        warn "$THIS_FILE: WARNING: $address: " . $r->status_line . ": "
                 . "Location not canonical: " . $r->header("Location") . "\n"
             if !$is_full_uri && $VERBOSE > 1;
-        $ruri->fragment(undef);
+        $redirect_uri->fragment(undef);
         # Use its canonical form
-        $ruri = $ruri->canonical;
+        $redirect_uri = $redirect_uri->canonical;
         
         # Save it
-        $URIS{$ruri->as_string} = $ruri if !exists $URIS{$ruri->as_string};
+        $URIS{$redirect_uri->as_string} = $redirect_uri if !exists $URIS{$redirect_uri->as_string};
         
         # 301 Moved Permanently should be treated as an error, because we need
         #   to change the reference from now on.
         if ($r->code == 301) {
-            $_ = $urirep;
-            $_ .= " " . $r->status_line . ": " . $ruri->as_string
+            $_ = $addr_report;
+            $_ .= " " . $r->status_line . ": " . $redirect_uri->as_string
                 if $VERBOSE > 0;
             print "$_\n";
-            return (undef, $ruri->as_string);
+            return (undef, $redirect_uri->as_string);
         }
         
         $SUCCESS++;
         # Warn when not quiet
-        print "$urirep " . $r->status_line . ": " . $ruri->as_string . "\n"
+        print "$addr_report " . $r->status_line . ": " . $redirect_uri->as_string . "\n"
                 if $VERBOSE > 1;
-        return (undef, $ruri->as_string);
+        return (undef, $redirect_uri->as_string);
     
     # Bad response that we cannot go on
     } elsif (grep($r->code == $_, (400, 403, 404, 410, 500)) > 0) {
-        $_ = $urirep;
+        $_ = $addr_report;
         $_ .= " " . $r->status_line if $VERBOSE > 0;
         print "$_\n";
         return (undef, undef);
     
     # Bad response that we should not keep requesting on a same server
     } elsif ($r->code == 503) {
-        $_ = $urirep;
+        $_ = $addr_report;
         $_ .= " " . $r->status_line if $VERBOSE > 0;
         print "$_\n";
-        $NOREQ_HOSTS{noreq_key $uritext} = $uritext;
+        $NO_REQ_HOSTS{no_req_key $address} = $address;
         return (undef, undef);
     
     # Unable to process
     } else {
         # Unable to process
-        print "$urirep " . $r->status_line . ": Unable to process this response\n";
+        print "$addr_report " . $r->status_line . ": Unable to process this response\n";
         return (undef, undef);
     }
-    
-    return;
 }
 
-# get_links: Parse the document and get the links inside
+# Parse the document and get the links inside
 sub get_links($$) {
     local ($_, %_);
     my ($html, $base, $parser);
     ($html, $base) = @_;
     
-    $parser = new HTML::LinkExtor;
+    $parser = HTML::LinkExtor->new;
     $parser->utf8_mode(1) if $] >= 5.008 && $HTML::Parser::VERSION >= 3.40;
     $parser->parse($html);
     @_ = qw();
@@ -475,13 +472,13 @@ sub get_links($$) {
     return;
 }
 
-# proc_link_val: Process a found link value
+# Process a found link value
 sub proc_link_val($$) {
     local ($_, %_);
     my ($base, $uri);
     ($_, $base) = @_;
     
-    $uri = new URI($_);
+    $uri = URI->new($_);
     
     # Make it canonical
     $uri = $uri->abs($URIS{$base}) if !defined $uri->scheme;
@@ -521,29 +518,29 @@ sub proc_link_val($$) {
     # Local
     if (get_target($uri->as_string) eq $LOCAL_TARGET) {
         # Skip found URLs
-        return if exists $LFOUND{$uri->as_string};
+        return if exists $LOCAL_FOUND{$uri->as_string};
         # Skip parent directories
-        return if !$PARENT && $uri->path !~ /^$STARTDIR/;
+        return if !$PARENT && $uri->path !~ /^$START_DIR/;
         push @LOCALS, $uri->as_string;
-        $LFOUND{$uri->as_string} = 1;
+        $LOCAL_FOUND{$uri->as_string} = 1;
     
     # Remote
     } else {
         # No remote
-        return if $NOREMOTE;
+        return if $IS_LOCAL;
         # Skip found URLs
-        return if exists $RFOUND{$uri->as_string};
+        return if exists $REMOTE_FOUND{$uri->as_string};
         push @REMOTES, $uri->as_string;
-        $RFOUND{$uri->as_string} = 1;
+        $REMOTE_FOUND{$uri->as_string} = 1;
     }
     
     return;
 }
 
-# is_excluded: If this page is excluded
+# If this page is excluded
 sub is_excluded($) {
     local ($_, %_);
-    my ($page, $path, $excpath, $match);
+    my ($page, $path, $match);
     $page = $_[0];
     
     foreach (@EXCLUDES) {
@@ -562,7 +559,7 @@ sub is_excluded($) {
     return 0;
 }
 
-# get_ua: Return a user agent for the request
+# Return a user agent for the request
 sub get_ua($) {
     local ($_, %_);
     $_ = $_[0];
@@ -574,8 +571,8 @@ sub get_ua($) {
     return $UA{$_} if exists $UA{$_};
     
     # Create a new user agent
-    $UA{$_} = new LWP::RobotUA(
-        "agent"         => $UASTR,
+    $UA{$_} = LWP::RobotUA->new(
+        "agent"         => $UA_STR,
         "from"          => (getlogin or getpwuid $> or $> or $THIS_FILE)
                             . "@" . hostname,
         "keep_alive"    => 1,
@@ -587,19 +584,19 @@ sub get_ua($) {
     return $UA{$_};
 }
 
-# get_target: Return the target of the request
+# Return the target of the request
 sub get_target($) {
     local ($_, %_);
-    my ($uritext, $uri, $scheme, $user, $pass, $host, $port);
-    $uritext = $_[0];
+    my ($address, $uri, $scheme, $user, $pass, $host, $port);
+    $address = $_[0];
     
-    die sprintf("%s %s", (caller 2)[1,2]) if !defined $uritext;
+    die sprintf("%s %s", (caller 2)[1,2]) if !defined $address;
     
     # Target cached
-    return $TARGETS{$uritext} if exists $TARGETS{$uritext};
+    return $TARGETS{$address} if exists $TARGETS{$address};
     
     # Construct the target of our request
-    $uri = $URIS{$uritext};
+    $uri = $URIS{$address};
     $scheme = $uri->scheme;
     if (!$uri->can("userinfo") || !defined($_ = $uri->userinfo)) {
         ($user, $pass) = (undef, undef);
@@ -616,7 +613,7 @@ sub get_target($) {
     undef $port if defined $_ && $_ eq $port;
     
     # Construct the target URI
-    $uri = new URI("");
+    $uri = URI->new("");
     $uri->scheme($scheme);
     undef $_;
     if (defined $user) {
@@ -628,17 +625,17 @@ sub get_target($) {
     $uri->port($port) if defined $port;
     
     # Cache it
-    $TARGETS{$uritext} = $uri->canonical;
-    return $TARGETS{$uritext};
+    $TARGETS{$address} = $uri->canonical;
+    return $TARGETS{$address};
 }
 
-# noreq_key: Obtain the key to check if we should keep requesting on this server
-sub noreq_key($) {
+# Obtain the key to check if we should keep requesting on this server
+sub no_req_key($) {
     local ($_, %_);
     my $uri;
     $_ = $_[0];
     
-    $uri = new URI("");
+    $uri = URI->new("");
     $uri->scheme($URIS{$_}->scheme);
     $uri->host(inet_aton($URIS{$_}->host));
     $uri->port($URIS{$_}->port) if $URIS{$_}->can("port");
@@ -646,13 +643,13 @@ sub noreq_key($) {
     return $uri->canonical->as_string;
 }
 
-# rep_uri: Report an URI, a wrapper to URI->as_string that clean the file scheme
+# Report an URI, a wrapper to URI->as_string that clean the file scheme
 sub rep_uri($) {
     local ($_, %_);
     $_ = $_[0];
     $_ = $_->as_string if ref($_) =~ /^URI\b/;
     return $_ unless s/^file:\/\///;
-    # Have something simular to a volumn ID, for MSWin32
+    # Have something similar to a volume ID, for MSWin32
     s/^\/([a-z]:)/$1/i;
     return File::Spec->catdir(split /\//, $_);
 }
@@ -669,24 +666,23 @@ chklinks - A non-threaded Perl link checker
 
 =head1 DESCRIPTION
 
-F<chklinks> is a non-threaded Perl link checker.  It helps finding
+F<chklinks> is a non-threaded Perl link checker.  It helps to find
 broken links on your website.
 
 F<chklinks> differs from C<linkchecker> in that F<chklinks> is non-
-threaded.  It does not raises many simultaneously connections for its
+threaded.  It does not raise many simultaneously connections for its
 job.  It won't run out of the resources and crash your system in a
 moment.  This is certainly more desirable for most webmasters and
 users.
 
-F<chklinks> follows F<robots.txt> rules.  If you disallow robots
-from your website and experience problems, you need to allow
-F<chklinks>.  Add the following lines to your F<robots.txt> file to
-allow F<chklinks>:
+F<chklinks> respects F<robots.txt>.  If you disallow robots from your
+website and experience problems, you need to allow F<chklinks>.  Add
+the following lines to your F<robots.txt> file to allow F<chklinks>:
 
   User-agent: chklinks
   Disallow:
 
-F<chklinks> uses L<LWP::RobotUA(3)|LWP::RobotUA/3> and support the
+F<chklinks> uses L<LWP::RobotUA(3)|LWP::RobotUA/3> and supports the
 following schemes: http, https, ftp, gopher and file.  You can also
 specify a local file.  (To use https, you need to install
 L<Crypt::SSLeay(3)|Crypt::SSLeay/3>.  This is the requirement of
@@ -698,43 +694,43 @@ F<chklinks> supports cookies.
 
 =over
 
-=item -1,--onelevel
+=item -1, --onelevel
 
 Check the links on this page and stops.
 
-=item -r,--recursive
+=item -r, --recursive
 
 Recursively check through this website.  This is the default.
 
-=item -b,--below
+=item -b, --below
 
 Only check the links below this directory.  This is the default.
 
-=item -p,--parent
+=item -p, --parent
 
 Trace back to the parent directories.
 
-=item -l,--local
+=item -l, --local
 
 Only check the links on this same host.
 
-=item -s,--span
+=item -s, --span
 
 Check the links to other hosts (without recursion).  This is the
 default.
 
-=item -e,--exclude path
+=item -e, --exclude path
 
 Exclude this path.  Check for their existence but not check the links
 on them, just like they are on a foreign site.  Multiple C<--exclude>
 are OK.
 
-=item -i,--include path
+=item -i, --include path
 
 Include this path.  An opposite of C<--exclude> that cancels its
 effect.  The latter specified has a higher priority.
 
-=item -d,--debug
+=item -d, --debug
 
 Display debug messages.  Multiple C<--debug> to debug more.
 
@@ -743,11 +739,11 @@ Display debug messages.  Multiple C<--debug> to debug more.
 Disable debug messages.  An opposite that cancels the effect of
 C<--debug>.
 
-=item -h,--help
+=item -h, --help
 
 Display the help message and exit.
 
-=item -v,--version
+=item -v, --version
 
 Output version information and exit.
 
@@ -776,11 +772,11 @@ for a L<LWP::Protocol(3)|LWP::Protocol/3> patch on this.
 =head1 BUGS
 
 F<chklinks> does not support authentication yet.  W3C-LinkChecker
-have support on this.  As a workaround, You can use the syntax
+supports this.  As a workaround, You can use the syntax
 http://user:pass@some.where.com/some/path for Basic Authentication,
 but this does not work on Digest Authentication.  This practice is
-not encouraged.  Your password would be visable to anyone on this
-system using F<ps>, including hidden intruders.  Also what you type
+not encouraged.  Your password would be visible to anyone on this
+system using F<ps>, including hidden intruders.  Also, what you type
 in your shell will be saved to your shell history file.
 
 C<mailto:> URLs should be supported by checking the validity of its
@@ -792,19 +788,8 @@ platforms should be tested, especially VMS and Mac.
 
 =head1 SUPPORT
 
-F<chklinks> is hosted on SourceForge, CPAN and Tavern IMACAT's.  For
-the latest infomation, see http://chklinks.sourceforge.net/ ,
-http://sourceforge.net/projects/chklinks/ ,
-http://search.cpan.org/dist/chklinks/ or
-http://www.imacat.idv.tw/tech/chklinks.html .
-
-F<chklinks> has a user discussion mailing list hosted at
-SourceForge: chklinks-users@lists.sourceforge.net .  It is a mailman
-mailing list.  For infomation on how to join or leave, see:
-http://lists.sourceforge.net/lists/listinfo/chklinks-users .
-Alternatively, you can send a mail to:
-chklinks-users-request@lists.sourceforge.net with the subject C<help>
-for a list of available commands.
+The F<chklinks> project is hosted on GitHub.  Address your issues on
+the GitHub issue tracker https://github.com/imacat/chklinks/issues.
 
 =head1 SEE ALSO
 
@@ -820,19 +805,18 @@ imacat <imacat@mail.imacat.idv.tw>.
 
 =head1 COPYRIGHT
 
-Copyright (c) 2003-2007 imacat.
+Copyright (c) 2003-2021 imacat.
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-This program is distributed in the hope that it will be useful,
-but I<WITHOUT ANY WARRANTY>; without even the implied warranty of
-I<MERCHANTABILITY> or I<FITNESS FOR A PARTICULAR PURPOSE>.  See the
-GNU General Public License for more details.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see L<http://www.gnu.org/licenses/>.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
 =cut
