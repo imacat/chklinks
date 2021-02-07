@@ -389,6 +389,25 @@ The `chklinks` project is hosted on GitHub.  Address your issues on the
 GitHub issue tracker https://github.com/imacat/chklinks/issues.
 
 
+Thanks
+------
+
+* Thanks to [SourceForge] for providing compiling farm for projects to
+  test on different platforms.
+
+* Thanks to [Stefan Seifert] for pointing
+  out redirection loops problem when cookies are not activated.
+  (2005-11-07)
+
+* Thanks to [nsnake] for reporting warnings from [HTML::Parser]
+  version >= 3.40 when checking UTF-8 pages. (2007-06-06)
+
+[SourceForge]: https://sf.net
+[Stefan Seifert]: mailto:stefan.seifert@atikon.com
+[nsnake]: mailto:loveme1314@gmail.com
+[HTML::Parser]: https://metacpan.org/pod/HTML::Parser
+
+
 License
 -------
 
