@@ -37,11 +37,13 @@ System Requirement
 ------------------
 
 1. Perl, version 5.6 or above.  I have not successfully run this on
-   earlier versions.  Please tell me if you can.  You can run
-   `perl -v` to see your current Perl version.  If you do not have
-   Perl, or if you have an older version of Perl, you can download and
-   install/upgrade it from the [Perl website].  If you are using
-   MS-Windows, you can download and install [ActiveState ActivePerl].
+   earlier versions.  Please tell me if you can.
+
+   You can run `perl -v` to check your current Perl version.  If you
+   do not have Perl, or if you have an older version of Perl, you can
+   download and install/upgrade it from the [Perl website].  For
+   MS-Windows, you can download and install [Strawberry Perl] or
+   [ActivePerl].
 
 2. Required Perl modules:
 
@@ -162,7 +164,8 @@ System Requirement
          ppm install Crypt-SSLeay
 
 [Perl website]: https://www.perl.org
-[ActiveState ActivePerl]: https://www.activestate.com
+[Strawberry Perl]: https://strawberryperl.com
+[ActivePerl]: https://www.activestate.com/products/perl/
 [URI]: https://metacpan.org/release/URI
 [HTML::LinkExtor]: https://metacpan.org/pod/HTML::LinkExtor
 [HTML-Parser]: https://metacpan.org/release/HTML-Parser
@@ -200,20 +203,14 @@ imacat’s PGP public key is at…
 Install
 -------
 
-`chklinks` uses standard Perl installation with ExtUtils::MakeMaker.
-Follow these steps:
-
     % perl Makefile.PL
     % make
     % make test
     % make install
 
 When running `make install`, make sure you have the privilege to
-write to the installation location.  This usually requires the `root`
+write to the installation locations.  This usually requires the `root`
 privilege.
-
-If you are using ActivePerl under MS-Windows, you should use `nmake`
-instead of `make`.  [nmake can be obtained from the Microsoft FTP site.]
 
 If you want to install into another location, you can set the
 `PREFIX`.  For example, to install into your home when you are not
@@ -224,10 +221,12 @@ If you want to install into another location, you can set the
 Refer to the documentation of ExtUtils::MakeMaker for more
 installation options (by running `perldoc ExtUtils::MakeMaker`).
 
-### Install with [Module::Build]
+For MS-Windows, since `make` is not universally available,
+Module::Build is preferred to ExtUtils::MakeMaker.  See the
+instructions below.
 
-You can install with Module::Build instead, if you prefer.  Follow
-these steps:
+
+### Install with [Module::Build]
 
     % perl Build.PL
     % ./Build
@@ -235,7 +234,7 @@ these steps:
     % ./Build install
 
 When running `./Build install`, make sure you have the privilege to
-write to the installation location.  This usually requires the `root`
+write to the installation locations.  This usually requires the `root`
 privilege.
 
 If you want to install into another location, you can set the
@@ -248,7 +247,6 @@ Refer to the documentation of Module::Build for more installation
 options (by running `perldoc Module::Build`).
 
 [ExtUtils::MakeMaker]: https://metacpan.org/release/ExtUtils-MakeMaker
-[nmake can be obtained from the Microsoft FTP site.]: ftp://ftp.microsoft.com/Softlib/MSLFILES/nmake15.exe
 [Module::Build]: https://metacpan.org/release/Module-Build
 
 
