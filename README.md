@@ -166,12 +166,12 @@ System Requirement
 [Perl website]: https://www.perl.org
 [Strawberry Perl]: https://strawberryperl.com
 [ActivePerl]: https://www.activestate.com/products/perl/
-[URI]: https://metacpan.org/release/URI
+[URI]: https://metacpan.org/pod/URI
 [HTML::LinkExtor]: https://metacpan.org/pod/HTML::LinkExtor
 [HTML-Parser]: https://metacpan.org/release/HTML-Parser
 [LWP::RobotUA]: https://metacpan.org/pod/LWP::RobotUA
 [libwww-perl]: https://metacpan.org/release/libwww-perl
-[Crypt::SSLeay]: https://metacpan.org/release/Crypt-SSLeay
+[Crypt::SSLeay]: https://metacpan.org/pod/Crypt::SSLeay
 
 
 Download
